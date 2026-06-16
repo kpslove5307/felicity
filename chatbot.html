@@ -303,7 +303,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
         </div>
         <div class="adm-field">
           <label>규격/상세 정보 <span style="font-weight:400;color:#aaa">(행 추가 가능)</span></label>
-          <div class="adm-info-rows" id="adm-edit-info-rows"></div>
+          <div class="adm-info-rows" id="adm-edit-info-rows"><div class="adm-info-row"><input type="text" placeholder="항목 (예: 규격)"><input type="text" placeholder="값 (예: 10×40mm)"><button>×</button></div></div>
           <button class="adm-add-row" onclick="admAddInfoRow('adm-edit-info-rows')">＋ 행 추가</button>
         </div>
       </div>
@@ -311,7 +311,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
       <!-- 실물 이미지 -->
       <div class="adm-sec">
         <p class="adm-sec-hd">📷 실물 이미지</p>
-        <div class="adm-grid" id="adm-real-grid"><div class="adm-card"><img src="" alt="실물"><div class="adm-card-lbl">실물</div><div class="adm-del-ov"><span>×</span></div></div></div>
+        <div class="adm-grid" id="adm-real-grid"><div class="adm-card"><img src="" alt="p-51 니켈"><div class="adm-card-lbl">p-51 니켈</div><div class="adm-del-ov"><span>×</span></div></div></div>
         <div class="adm-drop" id="adm-real-drop" onclick="document.getElementById('adm-real-file').click()">
           <input type="file" id="adm-real-file" accept="image/*" multiple="" onchange="admHandleFiles(this,'real')">
           ＋ 클릭 또는 드래그하여 실물 이미지 추가

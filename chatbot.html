@@ -298,6 +298,10 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
       <div class="adm-sec" id="adm-meta-sec" style="display: none;">
         <p class="adm-sec-hd">📝 기본 정보</p>
         <div class="adm-field">
+          <label>제품명</label>
+          <input type="text" id="adm-edit-name" placeholder="제품명 입력" style="width:100%;box-sizing:border-box;">
+        </div>
+        <div class="adm-field">
           <label>카테고리</label>
           <select id="adm-edit-cat"><option value="천장몰딩">천장몰딩</option><option value="대칭몰딩">대칭몰딩</option><option value="비대칭몰딩">비대칭몰딩</option><option value="허리몰딩">허리몰딩</option><option value="평몰딩">평몰딩</option><option value="걸레받이">걸레받이</option><option value="마감재">마감재</option><option value="포인트몰딩">포인트몰딩</option><option value="계단몰딩">계단몰딩</option><option value="PVC몰딩">PVC몰딩</option><option value="인조대리석">인조대리석</option><option value="리빙보드">리빙보드</option><option value="힐링월">힐링월</option><option value="비지오/세라민">비지오/세라민</option><option value="실린더/잠금장치">실린더/잠금장치</option><option value="하드웨어">하드웨어</option><option value="__new__">직접 입력…</option></select>
         </div>
@@ -1005,6 +1009,9 @@ function admLoadProduct(){
   // 기본 정보 섹션 표시
   metaSec.style.display='block';
   delBtn.style.display='';
+  // 제품명 세팅
+  var editName=document.getElementById('adm-edit-name');
+  if(editName)editName.value=pname;
   // 카테고리 세팅
   var editCat=document.getElementById('adm-edit-cat');
   if(editCat){
@@ -1084,6 +1091,19 @@ function admSaveLocal(){
   var pname=document.getElementById('adm-product-sel').value;
   if(!pname)return false;
   var p=DB[pname];if(!p)return false;
+  // 제품명 변경 처리
+  var editNameEl=document.getElementById('adm-edit-name');
+  var newName=editNameEl?editNameEl.value.trim():'';
+  if(newName&&newName!==pname){
+    if(DB[newName]){alert('"'+newName+'" 이름의 제품이 이미 존재합니다.');return false;}
+    DB[newName]=p;
+    delete DB[pname];
+    pname=newName;
+    // select 재구성
+    admFilterProducts(document.getElementById('adm-product-search').value||'');
+    document.getElementById('adm-product-sel').value=newName;
+    admFilterDelProducts(document.getElementById('adm-del-search')&&document.getElementById('adm-del-search').value||'');
+  }
   var ec=document.getElementById('adm-edit-cat');
   if(ec&&ec.value&&ec.value!=='__new__')p.cat=ec.value;
   p.info=admGetInfoRows('adm-edit-info-rows');

@@ -332,9 +332,14 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
         </div>
       </div>
 
-      <!-- 상세설명 이미지 -->
+      <!-- 상세설명 텍스트 + 이미지 -->
       <div class="adm-sec">
-        <p class="adm-sec-hd">📋 상세설명 이미지</p>
+        <p class="adm-sec-hd">📋 상세설명</p>
+        <div class="adm-field">
+          <label>텍스트 설명 <span style="font-weight:400;color:#aaa">(직접 입력)</span></label>
+          <textarea id="adm-desc-text" placeholder="상세설명을 직접 입력하세요&#10;예) 색상: 골드 / 실버 / 브론즈&#10;용도: 천장·벽면 경계 마감" style="width:100%;min-height:90px;padding:8px 10px;border:1px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;line-height:1.6"></textarea>
+        </div>
+        <label style="font-size:12px;font-weight:700;color:#444;display:block;margin:8px 0 6px">이미지 <span style="font-weight:400;color:#aaa">(선택)</span></label>
         <div class="adm-grid" id="adm-desc-grid"><p class="adm-empty">(이미지 없음)</p></div>
         <div class="adm-drop" id="adm-desc-drop" onclick="document.getElementById('adm-desc-file').click()">
           <input type="file" id="adm-desc-file" accept="image/*" multiple="" onchange="admHandleFiles(this,'desc')">
@@ -399,9 +404,14 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
         </div>
       </div>
 
-      <!-- 상세설명 이미지 -->
+      <!-- 상세설명 텍스트 + 이미지 -->
       <div class="adm-sec">
-        <p class="adm-sec-hd">📋 상세설명 이미지 <span style="font-weight:400;color:#aaa">(선택)</span></p>
+        <p class="adm-sec-hd">📋 상세설명 <span style="font-weight:400;color:#aaa">(선택)</span></p>
+        <div class="adm-field">
+          <label>텍스트 설명 <span style="font-weight:400;color:#aaa">(직접 입력)</span></label>
+          <textarea id="adm-new-desc-text" placeholder="상세설명을 직접 입력하세요&#10;예) 색상: 골드 / 실버 / 브론즈" style="width:100%;min-height:90px;padding:8px 10px;border:1px solid #ddd;border-radius:7px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;line-height:1.6"></textarea>
+        </div>
+        <label style="font-size:12px;font-weight:700;color:#444;display:block;margin:8px 0 6px">이미지 <span style="font-weight:400;color:#aaa">(선택)</span></label>
         <div class="adm-grid" id="adm-new-desc-grid"><p class="adm-empty">(이미지 없음)</p></div>
         <div class="adm-drop" id="adm-new-desc-drop" onclick="document.getElementById('adm-new-desc-file').click()">
           <input type="file" id="adm-new-desc-file" accept="image/*" multiple="" onchange="admHandleFiles(this,'newDesc')">
@@ -560,13 +570,19 @@ function buildCard(key){
   var dsl=(p.drawings||[]).map(function(d){return{src:gi(d.f),l:d.l};}).filter(function(s){return s.src;});
   if(dsl.length){var sv2=buildSlider(dsl);if(sv2)panes.draw.appendChild(sv2);}
   else{var e2=document.createElement('div');e2.className='etp';e2.innerHTML='<span class="ei">📐</span>도면 준비 중';panes.draw.appendChild(e2);}
-  if(p.videos&&p.videos.length){
+  if(p.videos&&p.videos.length||p.descText){
+    if(p.descText){
+      var dt=document.createElement('div');
+      dt.style.cssText='white-space:pre-wrap;line-height:1.7;font-size:13px;color:#333;padding:10px 12px;background:#f8f9fc;border-radius:8px;margin-bottom:10px;border-left:3px solid var(--p)';
+      dt.textContent=p.descText;
+      panes.video.appendChild(dt);
+    }
     var descSlides=(p.videos||[]).map(function(v){return{src:gi(v.f),l:v.l};}).filter(function(s){return s.src;});
     if(descSlides.length){var sv3=buildSlider(descSlides);if(sv3)panes.video.appendChild(sv3);}
-    else{var e3=document.createElement('div');e3.className='etp';e3.innerHTML='<span class="ei">📋</span>이미지 없음';panes.video.appendChild(e3);}
+    else if(!p.descText){var e3=document.createElement('div');e3.className='etp';e3.innerHTML='<span class="ei">📋</span>이미지 없음';panes.video.appendChild(e3);}
   } else {
     var e3=document.createElement('div');e3.className='etp';
-    e3.innerHTML='<span class="ei">📋</span>상세설명 준비 중<br><small>관리자 모드에서 이미지를 추가하세요</small>';
+    e3.innerHTML='<span class="ei">📋</span>상세설명 준비 중<br><small>관리자 모드에서 추가하세요</small>';
     panes.video.appendChild(e3);
   }
   Object.values(panes).forEach(function(pane){card.appendChild(pane);});
@@ -1035,6 +1051,9 @@ function admLoadProduct(){
   (p.videos||[]).forEach(function(obj){
     admPending.desc.push({src:gi(obj.f)||'',label:obj.l||obj.f,origF:obj.f,origL:obj.l,isUrl:true});
   });
+  // 텍스트 설명 로드
+  var descTextEl=document.getElementById('adm-desc-text');
+  if(descTextEl)descTextEl.value=p.descText||'';
   ['real','draw','desc'].forEach(function(t){admRenderGrid(t);});
 }
 
@@ -1129,6 +1148,9 @@ function admSaveLocal(){
       return{f:f,l:l};
     });
   }
+  // 텍스트 설명 저장
+  var descTextEl=document.getElementById('adm-desc-text');
+  p.descText=(descTextEl?descTextEl.value.trim():'');
   return true;
 }
 function admSave(){
@@ -1157,10 +1179,12 @@ function admAddProductLocal(){
     var f=item.origF||(name+'_desc_'+idx+'.jpg');var l=item.label||f;
     if(item.src)I[f]=item.src;return{f:f,l:l};
   });
-  DB[name]={cat:cat,info:info,images:images,drawings:drawings,videos:videos};
+  var newDescText=(document.getElementById('adm-new-desc-text')||{value:''}).value.trim();
+  DB[name]={cat:cat,info:info,images:images,drawings:drawings,videos:videos,descText:newDescText};
   // 폼 초기화
   document.getElementById('adm-new-name').value='';
   document.getElementById('adm-new-info-rows').innerHTML='';
+  var ndtEl=document.getElementById('adm-new-desc-text');if(ndtEl)ndtEl.value='';
   admPending.newReal=[];admPending.newDraw=[];admPending.newDesc=[];
   ['newReal','newDraw','newDesc'].forEach(function(t){admRenderGrid(t);});
   return true;

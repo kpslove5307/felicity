@@ -134,7 +134,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
 .adm-close-btn{background:#eee;color:#555;border:none;border-radius:8px;padding:10px 18px;cursor:pointer;font-size:14px}
 /* 관리자 탭 */
 .adm-tabs{display:flex;gap:0;margin-bottom:16px;border:1px solid #ddd;border-radius:8px;overflow:hidden}
-.adm-tab{flex:1;padding:9px 0;border:none;background:#f5f5f5;color:#888;font-size:12px;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
+.adm-tab{flex:1;padding:9px 0;border:none;background:#f5f5f5;color:#888;font-size:11px;font-weight:600;cursor:pointer;transition:background .15s,color .15s}
 .adm-tab.on{background:var(--p);color:#fff}
 /* 신규 제품 폼 */
 .adm-new-form{display:none}
@@ -184,6 +184,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
 @keyframes adm-spin{to{transform:rotate(360deg)}}
 </style>
 </head>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <body>
 <div id="lb" style="display: none;"><span id="lbx">×</span><img id="lbi" src="" alt=""><div id="lbc">P-01_page-0001</div></div>
 <div id="app">
@@ -287,6 +288,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
       <button class="adm-tab on" id="adm-tab-edit" onclick="admSwitchTab('edit')">✏️ 제품 편집</button>
       <button class="adm-tab" id="adm-tab-new" onclick="admSwitchTab('new')">➕ 새 제품 추가</button>
       <button class="adm-tab" id="adm-tab-cat" onclick="admSwitchTab('cat')">🏷 카테고리</button>
+      <button class="adm-tab" id="adm-tab-stock" onclick="admSwitchTab('stock')">📦 재고</button>
     </div>
 
     <!-- 탭1: 기존 제품 편집 -->
@@ -461,6 +463,60 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
       </div>
     </div>
 
+    <!-- 탭4: 재고 업데이트 -->
+    <div id="adm-stock-view" style="display:none;padding:0 2px 16px">
+      <div class="adm-sec">
+        <p class="adm-sec-hd">📦 재고 엑셀 업로드</p>
+        <div style="font-size:12px;color:#888;margin-bottom:10px;line-height:1.7">
+          엑셀 파일 형식: <b>A열 = 제품명</b>, <b>B열 = 재고수량</b> (1행은 헤더)<br>
+          예) <span style="background:#f5f5f5;padding:1px 6px;border-radius:4px;font-family:monospace">제품명 | 재고</span> → <span style="background:#f5f5f5;padding:1px 6px;border-radius:4px;font-family:monospace">클래식몰딩 40평 | 15</span>
+        </div>
+        <!-- 드롭존 -->
+        <div id="adm-stock-drop" onclick="document.getElementById('adm-stock-file').click()" style="border:2px dashed #bbb;border-radius:10px;padding:28px 16px;text-align:center;cursor:pointer;background:#fafafa;transition:border-color .15s">
+          <input type="file" id="adm-stock-file" accept=".xlsx,.xls,.csv" style="display:none" onchange="admStockHandleFile(this.files[0])">
+          <div style="font-size:28px;margin-bottom:6px">📂</div>
+          <div style="font-size:13px;color:#888">클릭하거나 엑셀 파일을 드래그하세요<br><span style="font-size:11px;color:#bbb">.xlsx / .xls / .csv 지원</span></div>
+        </div>
+        <!-- 미리보기 -->
+        <div id="adm-stock-preview" style="display:none;margin-top:14px">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+            <span id="adm-stock-summary" style="font-size:13px;font-weight:700;color:#333"></span>
+            <span id="adm-stock-warn" style="font-size:11px;color:#e67e22"></span>
+          </div>
+          <div style="max-height:260px;overflow-y:auto;border:1px solid #e0e0e0;border-radius:8px">
+            <table style="width:100%;border-collapse:collapse;font-size:12px">
+              <thead>
+                <tr style="background:#f5f5f5;position:sticky;top:0">
+                  <th style="padding:6px 10px;text-align:left;border-bottom:1px solid #e0e0e0">제품명</th>
+                  <th style="padding:6px 10px;text-align:center;border-bottom:1px solid #e0e0e0;width:70px">재고</th>
+                  <th style="padding:6px 10px;text-align:center;border-bottom:1px solid #e0e0e0;width:60px">상태</th>
+                </tr>
+              </thead>
+              <tbody id="adm-stock-tbody"></tbody>
+            </table>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:10px">
+            <button onclick="admStockApply()" style="flex:1;padding:10px;background:var(--p);color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✅ 재고 적용</button>
+            <button onclick="admStockApplyAndPush()" style="flex:1;padding:10px;background:#28a745;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">✅🚀 적용 + GitHub 업로드</button>
+            <button onclick="admStockReset()" style="padding:10px 14px;background:#eee;color:#555;border:none;border-radius:8px;font-size:13px;cursor:pointer">✕</button>
+          </div>
+        </div>
+        <!-- 날짜 표시 -->
+        <div id="adm-stock-updated" style="margin-top:12px;font-size:11px;color:#aaa;text-align:right"></div>
+      </div>
+
+      <!-- 현재 재고 현황 -->
+      <div class="adm-sec" style="margin-top:10px">
+        <p class="adm-sec-hd">📋 현재 재고 현황 <span style="font-weight:400;color:#aaa;font-size:12px">(재고 등록된 제품만 표시)</span></p>
+        <input type="text" id="adm-stock-search" placeholder="🔍 제품명 검색..." oninput="admStockRenderList(this.value)" style="width:100%;box-sizing:border-box;padding:8px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;outline:none;margin-bottom:8px">
+        <div id="adm-stock-list" style="max-height:300px;overflow-y:auto"></div>
+      </div>
+
+      <div class="adm-foot">
+        <button class="adm-close-btn" onclick="admClosePanel()">닫기</button>
+      </div>
+    </div>
+
   </div>
 </div>
 
@@ -624,6 +680,16 @@ function buildCard(key){
   var pb=document.createElement('div');pb.className='pb';
   var pt=document.createElement('div');pt.className='pt';pt.textContent=key;
   var bc=document.createElement('span');bc.className='bc';bc.textContent=p.cat;pt.appendChild(bc);pb.appendChild(pt);
+  // 재고 표시
+  if(p.stock!==undefined&&p.stock!==null&&p.stock!==''){
+    var qty=p.stock;
+    var isLow=(!isNaN(qty)&&Number(qty)<=5);
+    var stockBadge=document.createElement('div');
+    stockBadge.style.cssText='display:inline-flex;align-items:center;gap:4px;margin:4px 0 2px;padding:3px 9px;border-radius:20px;font-size:11px;font-weight:700;background:'+(isLow?'#fff0f0':'#f0fff4')+';color:'+(isLow?'#e74c3c':'#27ae60')+';border:1px solid '+(isLow?'#fcc':'#b2dfdb');
+    stockBadge.innerHTML='📦 재고: '+qty+(isLow?' ⚠️':'')+
+      (p.stockDate?'<span style="font-weight:400;color:#aaa;margin-left:4px;font-size:10px">'+p.stockDate.slice(5,10)+'</span>':'');
+    pb.appendChild(stockBadge);
+  }
   if(p.info&&p.info.length){
     var tbl=document.createElement('table');tbl.className='it';
     p.info.forEach(function(r){
@@ -1004,6 +1070,17 @@ function admOpenPanel(){
   document.getElementById('adm-del-btn').style.display='none';
   admSwitchTab('edit');
   admGhUpdateStatus();
+  // 재고 드롭존 드래그 초기화
+  var stockDrop=document.getElementById('adm-stock-drop');
+  if(stockDrop&&!stockDrop._dropInit){
+    stockDrop._dropInit=true;
+    stockDrop.addEventListener('dragover',function(e){e.preventDefault();stockDrop.style.borderColor='var(--p)';stockDrop.style.background='#f0f4ff';});
+    stockDrop.addEventListener('dragleave',function(){stockDrop.style.borderColor='#bbb';stockDrop.style.background='#fafafa';});
+    stockDrop.addEventListener('drop',function(e){
+      e.preventDefault();stockDrop.style.borderColor='#bbb';stockDrop.style.background='#fafafa';
+      var f=e.dataTransfer.files[0];if(f)admStockHandleFile(f);
+    });
+  }
   document.getElementById('adm-panel').classList.add('show');
 }
 function admDropId(type){
@@ -1017,10 +1094,13 @@ function admSwitchTab(tab){
   document.getElementById('adm-tab-edit').classList.toggle('on',tab==='edit');
   document.getElementById('adm-tab-new').classList.toggle('on',tab==='new');
   document.getElementById('adm-tab-cat').classList.toggle('on',tab==='cat');
+  document.getElementById('adm-tab-stock').classList.toggle('on',tab==='stock');
   document.getElementById('adm-edit-view').classList.toggle('on',tab==='edit');
   document.getElementById('adm-new-view').classList.toggle('on',tab==='new');
   document.getElementById('adm-cat-view').style.display=(tab==='cat')?'block':'none';
+  document.getElementById('adm-stock-view').style.display=(tab==='stock')?'block':'none';
   if(tab==='cat')admCatRender();
+  if(tab==='stock'){admStockRenderList('');admStockUpdateDate();}
 }
 
 // ── 카테고리 관리 ──────────────────────────────────────
@@ -1174,6 +1254,139 @@ function admCatAdd(){
 function admCatSaveAndPush(){
   admPopulateCats();
   admPushToGitHub(null);
+}
+
+// ── 재고 관리 ──────────────────────────────────────────
+var _stockRows=[];  // 파싱된 엑셀 데이터 [{name, qty}]
+
+function admStockUpdateDate(){
+  var el=document.getElementById('adm-stock-updated');
+  var d=localStorage.getItem('woodin_stock_updated');
+  el.textContent=d?'마지막 업데이트: '+d:'아직 재고 업데이트 기록 없음';
+}
+
+function admStockHandleFile(file){
+  if(!file)return;
+  var ext=file.name.split('.').pop().toLowerCase();
+  if(ext==='csv'){
+    var reader=new FileReader();
+    reader.onload=function(e){admStockParseCSV(e.target.result);};
+    reader.readAsText(file,'UTF-8');
+  } else {
+    var reader=new FileReader();
+    reader.onload=function(e){
+      var data=new Uint8Array(e.target.result);
+      // SheetJS 없으면 안내
+      if(typeof XLSX==='undefined'){
+        alert('xlsx 라이브러리가 로드되지 않았습니다.\nCSV 파일을 사용해 주세요.');
+        return;
+      }
+      var wb=XLSX.read(data,{type:'array'});
+      var ws=wb.Sheets[wb.SheetNames[0]];
+      var rows=XLSX.utils.sheet_to_json(ws,{header:1,defval:''});
+      admStockParseRows(rows);
+    };
+    reader.readAsArrayBuffer(file);
+  }
+}
+
+function admStockParseCSV(text){
+  var lines=text.replace(/\r/g,'').split('\n');
+  var rows=lines.map(function(l){return l.split(',');});
+  admStockParseRows(rows);
+}
+
+function admStockParseRows(rows){
+  _stockRows=[];
+  // 첫 행이 헤더인지 확인 (숫자가 아니면 헤더로 간주)
+  var start=0;
+  if(rows.length>0){
+    var firstB=String(rows[0][1]||'').trim();
+    if(isNaN(firstB)||firstB==='')start=1;
+  }
+  for(var i=start;i<rows.length;i++){
+    var name=String(rows[i][0]||'').trim();
+    var qty=String(rows[i][1]||'').trim();
+    if(!name)continue;
+    _stockRows.push({name:name,qty:qty});
+  }
+  admStockShowPreview();
+}
+
+function admStockShowPreview(){
+  if(_stockRows.length===0){alert('데이터를 읽지 못했습니다. 파일 형식을 확인해주세요.');return;}
+  var matched=0,unmatched=0;
+  var tbody=document.getElementById('adm-stock-tbody');
+  tbody.innerHTML='';
+  _stockRows.forEach(function(row){
+    var inDB=DB.hasOwnProperty(row.name);
+    if(inDB)matched++;else unmatched++;
+    var tr=document.createElement('tr');
+    tr.style.borderBottom='1px solid #f0f0f0';
+    tr.innerHTML='<td style="padding:5px 10px;color:'+(inDB?'#333':'#bbb')+'">'+row.name+'</td>'
+      +'<td style="padding:5px 10px;text-align:center;font-weight:700;color:'+(inDB?'var(--p)':'#ccc')+'">'+row.qty+'</td>'
+      +'<td style="padding:5px 10px;text-align:center">'+(inDB?'<span style="color:#28a745;font-size:13px">✅</span>':'<span style="color:#ccc;font-size:11px">미등록</span>')+'</td>';
+    tbody.appendChild(tr);
+  });
+  document.getElementById('adm-stock-summary').textContent=
+    '총 '+_stockRows.length+'개 행 · 매칭 '+matched+'개 · 미등록 '+unmatched+'개';
+  document.getElementById('adm-stock-warn').textContent=
+    unmatched>0?'⚠ 미등록 제품은 무시됩니다':'';
+  document.getElementById('adm-stock-preview').style.display='block';
+}
+
+function admStockApply(){
+  var count=0;
+  var now=new Date();
+  var dateStr=now.getFullYear()+'.'+(now.getMonth()+1).toString().padStart(2,'0')+'.'+now.getDate().toString().padStart(2,'0')+' '+now.getHours().toString().padStart(2,'0')+':'+now.getMinutes().toString().padStart(2,'0');
+  _stockRows.forEach(function(row){
+    if(DB.hasOwnProperty(row.name)){
+      DB[row.name].stock=row.qty;
+      DB[row.name].stockDate=dateStr;
+      count++;
+    }
+  });
+  localStorage.setItem('woodin_stock_updated',dateStr);
+  admStockUpdateDate();
+  admStockRenderList(document.getElementById('adm-stock-search').value);
+  alert('✅ '+count+'개 제품 재고가 업데이트됐습니다.\n🚀 GitHub 업로드를 눌러야 다른 기기에도 반영됩니다.');
+}
+
+function admStockApplyAndPush(){
+  admStockApply();
+  admPushToGitHub(null);
+}
+
+function admStockReset(){
+  _stockRows=[];
+  document.getElementById('adm-stock-preview').style.display='none';
+  document.getElementById('adm-stock-file').value='';
+}
+
+function admStockRenderList(query){
+  var el=document.getElementById('adm-stock-list');
+  var items=Object.entries(DB)
+    .filter(function(e){return e[1].stock!==undefined&&e[1].stock!==null&&e[1].stock!=='';})
+    .filter(function(e){return !query||e[0].toLowerCase().indexOf(query.toLowerCase())>=0;})
+    .sort(function(a,b){return a[0].localeCompare(b[0],'ko');});
+  if(items.length===0){
+    el.innerHTML='<div style="color:#bbb;font-size:12px;text-align:center;padding:20px">재고 데이터 없음</div>';
+    return;
+  }
+  el.innerHTML='';
+  items.forEach(function(e){
+    var name=e[0];var p=e[1];
+    var qty=p.stock;
+    var isLow=(!isNaN(qty)&&Number(qty)<=5);
+    var row=document.createElement('div');
+    row.style.cssText='display:flex;align-items:center;gap:8px;padding:6px 10px;border-bottom:1px solid #f0f0f0;font-size:12px';
+    row.innerHTML='<span style="flex:1;color:#333;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+name+'</span>'
+      +'<span style="font-size:10px;color:#aaa">'+p.cat+'</span>'
+      +'<span style="font-weight:700;color:'+(isLow?'#e74c3c':'var(--p)')+';min-width:40px;text-align:right">'+qty+'</span>'
+      +(isLow?'<span style="font-size:10px;color:#e74c3c">⚠부족</span>':'')
+      +(p.stockDate?'<span style="font-size:10px;color:#ccc;margin-left:4px">'+p.stockDate.slice(5,16)+'</span>':'');
+    el.appendChild(row);
+  });
 }
 
 function admSetupDrop(dropId,type){

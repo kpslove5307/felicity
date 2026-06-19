@@ -1641,23 +1641,42 @@ function handleInput(t){
   setTimeout(function(){respond(t);},230);
 }
 
+// 제품의 검색가능한 텍스트 전체를 하나의 문자열로 반환
+function getProductText(k){
+  var p=DB[k];
+  var parts=[k];
+  if(p.cat)parts.push(p.cat);
+  if(p.info)p.info.forEach(function(row){parts.push(row[0]);parts.push(row[1]);});
+  if(p.descText)parts.push(p.descText);
+  return parts.join(' ').toLowerCase();
+}
+
+// 단어 분리 스마트 검색: 단어 많이 매칭될수록 높은 점수
+function smartSearch(q){
+  var words=q.trim().toLowerCase().split(/\s+/).filter(function(w){return w.length>0;});
+  if(!words.length)return[];
+  var scored=[];
+  Object.keys(DB).forEach(function(k){
+    var txt=getProductText(k);
+    var score=0;
+    words.forEach(function(w){if(txt.indexOf(w)!==-1)score++;});
+    if(score>0)scored.push({k:k,score:score});
+  });
+  // 점수 내림차순, 같으면 이름순
+  scored.sort(function(a,b){return b.score-a.score||a.k.localeCompare(b.k,'ko');});
+  return scored;
+}
+
 function respond(q){
   var ql=q.toLowerCase().replace(/\s/g,'');
-  // 정확 매칭 우선
+  // 정확 매칭 우선 (제품명)
   var ks=Object.keys(DB);
   for(var i=0;i<ks.length;i++){
     if(ks[i].toLowerCase().replace(/\s/g,'')===ql){
       addBot(null,[],buildCard(ks[i]));return;
     }
   }
-  // 부분 매칭 1개
-  var matches=search(q);
-  if(matches.length===1){addBot(null,[],buildCard(matches[0]));return;}
-  // 여러 개 매칭
-  if(matches.length>1){
-    addBot('<b>🔍 "'+q+'" 검색결과 ('+matches.length+'개)</b><br><small style="color:#90a4ae">원하는 제품을 선택하세요</small>',matches);return;
-  }
-  // 카테고리 클릭
+  // 카테고리 정확 매칭
   if(ADM_CATS.indexOf(q)!==-1){
     var catProducts=Object.keys(DB).filter(function(k){return DB[k].cat===q;});
     if(catProducts.length>0){
@@ -1667,11 +1686,37 @@ function respond(q){
     }
     return;
   }
+  // 제품명 부분 매칭
+  var matches=search(q);
+  if(matches.length===1){addBot(null,[],buildCard(matches[0]));return;}
+  if(matches.length>1){
+    addBot('<b>🔍 "'+q+'" 검색결과 ('+matches.length+'개)</b><br><small style="color:#90a4ae">원하는 제품을 선택하세요</small>',matches);return;
+  }
   // 인사
   if(q.indexOf('안녕')!==-1||ql==='hi'||ql==='hello'){
     addBot('안녕하세요! 👋<br>우딘 하드웨어 챗봇입니다.',ADM_CATS);return;
   }
-  addBot('"'+q+'" 제품을 찾지 못했어요. 카테고리에서 선택하거나 검색창에 입력해 보세요! 😊',ADM_CATS);
+  // 스마트 검색 (제품명 검색 실패 시 → info/descText 포함 전문 검색)
+  var words=q.trim().split(/\s+/);
+  var scored=smartSearch(q);
+  if(scored.length>0){
+    // 최고점 기준으로 필터 (최고점의 60% 이상만)
+    var topScore=scored[0].score;
+    var totalWords=words.filter(function(w){return w.length>0;}).length;
+    // 단어가 1개면 모두, 2개 이상이면 최소 절반 이상 매칭
+    var minScore=totalWords<=1?1:Math.max(1,Math.floor(totalWords*0.5));
+    var filtered=scored.filter(function(s){return s.score>=minScore;}).map(function(s){return s.k;});
+    if(filtered.length===1){
+      addBot(null,[],buildCard(filtered[0]));return;
+    }
+    if(filtered.length>1&&filtered.length<=30){
+      addBot('<b>🔍 "'+q+'" 관련 제품 ('+filtered.length+'개)</b><br><small style="color:#90a4ae">원하는 제품을 선택하세요</small>',filtered);return;
+    }
+    if(filtered.length>30){
+      addBot('<b>🔍 "'+q+'" 검색결과가 너무 많아요 ('+filtered.length+'개)</b><br><small style="color:#90a4ae">더 구체적인 키워드를 추가해 보세요</small>',filtered.slice(0,20));return;
+    }
+  }
+  addBot('"'+q+'" 관련 제품을 찾지 못했어요. 카테고리에서 선택하거나 다른 키워드로 검색해 보세요! 😊',ADM_CATS);
 }
 
 document.getElementById('sb').addEventListener('click',function(){handleInput(ii.value);});

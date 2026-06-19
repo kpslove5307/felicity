@@ -1657,19 +1657,27 @@ function respond(q){
   if(matches.length>1){
     addBot('<b>🔍 "'+q+'" 검색결과 ('+matches.length+'개)</b><br><small style="color:#90a4ae">원하는 제품을 선택하세요</small>',matches);return;
   }
+  // 카테고리 클릭
+  if(ADM_CATS.indexOf(q)!==-1){
+    var catProducts=Object.keys(DB).filter(function(k){return DB[k].cat===q;});
+    if(catProducts.length>0){
+      addBot('<b>📂 '+q+'</b> ('+catProducts.length+'개 제품)',catProducts);
+    } else {
+      addBot('<b>📂 '+q+'</b> — 등록된 제품이 없습니다.',ADM_CATS);
+    }
+    return;
+  }
   // 인사
   if(q.indexOf('안녕')!==-1||ql==='hi'||ql==='hello'){
-    addBot('안녕하세요! 👋<br>우딘 하드웨어 챗봇입니다.<br>위 <b>🔍 검색창</b>에 제품명을 입력하면 자동완성으로 바로 찾을 수 있어요!',
-      ['대칭','비대칭','걸레받이','마감재','커브','PVC','사각포인트']);return;
+    addBot('안녕하세요! 👋<br>우딘 하드웨어 챗봇입니다.',ADM_CATS);return;
   }
-  addBot('"'+q+'" 제품을 찾지 못했어요. 위 검색창에 다시 입력해 보세요! 😊',
-    ['대칭','비대칭','걸레받이','마감재','커브','PVC','사각포인트']);
+  addBot('"'+q+'" 제품을 찾지 못했어요. 카테고리에서 선택하거나 검색창에 입력해 보세요! 😊',ADM_CATS);
 }
 
 document.getElementById('sb').addEventListener('click',function(){handleInput(ii.value);});
 ii.addEventListener('keydown',function(e){if(e.key==='Enter')handleInput(ii.value);});
 
-addBot('안녕하세요. 👋<br><br><b>하드웨어 챗봇</b>입니다.<br><br>본 챗봇은 Q&amp;A 방식이 아닌 제품 검색 시 나오는 <b>이미지와 도면 상세설명 페이지</b>의 내용을 확인하는 용도이며,<br>상세설명 페이지의 내용 중 수정이 필요하거나 궁금했던 내용의 답이 없을 시 <b>관리자질문</b>에 적어 보내면 확인 후 실시간 업데이트 됩니다.<br><br><b>* 검색방법</b><br>1. 안내 메시지 아래 전체 카테고리에서 필요한 제품 클릭 (마우스 클릭으로만 검색)<br>2. 제품명을 하단 검색란에 입력 &nbsp; 예) <i>p-51</i> &nbsp; 실런더 51만 검색하여도 검색어 자동완성으로 검색 가능<br>3. 간단한 질문으로 검색 가능 &nbsp; 예) <i>45t 정적용가능 모티스</i>, <i>인조대리석 납기</i> 등');
+addBot('안녕하세요. 👋<br><br><b>하드웨어 챗봇</b>입니다.<br><br>본 챗봇은 Q&amp;A 방식이 아닌 제품 검색 시 나오는 <b>이미지와 도면 상세설명 페이지</b>의 내용을 확인하는 용도이며,<br>상세설명 페이지의 내용 중 수정이 필요하거나 궁금했던 내용의 답이 없을 시 <b>관리자질문</b>에 적어 보내면 확인 후 실시간 업데이트 됩니다.<br><br><b>* 검색방법</b><br>1. 안내 메시지 아래 전체 카테고리에서 필요한 제품 클릭 (마우스 클릭으로만 검색)<br>2. 제품명을 하단 검색란에 입력 &nbsp; 예) <i>p-51</i> &nbsp; 실런더 51만 검색하여도 검색어 자동완성으로 검색 가능<br>3. 간단한 질문으로 검색 가능 &nbsp; 예) <i>45t 정적용가능 모티스</i>, <i>인조대리석 납기</i> 등',ADM_CATS);
 </script>
 
 <script>

@@ -966,7 +966,7 @@ async function admCloseIssue(num,btn){
 function admNoticeLoad(){
   var ta=document.getElementById('adm-notice-ta');
   // HTML → 편집 가능 텍스트로 변환
-  ta.value=ADM_NOTICE
+  ta.value=_WDN_
     .replace(/<br>/gi,'\n')
     .replace(/&amp;/g,'&')
     .replace(/&nbsp;/g,' ');
@@ -984,7 +984,7 @@ function admNoticeSave(){
   var raw=document.getElementById('adm-notice-ta').value.trim();
   if(!raw){alert('내용을 입력해 주세요.');return;}
   var html=raw.replace(/&(?!amp;|nbsp;|lt;|gt;)/g,'&amp;').replace(/\n/g,'<br>');
-  ADM_NOTICE=html;
+  _WDN_=html;
   var msgEl=document.getElementById('adm-notice-msg');
   msgEl.style.color='#888';msgEl.textContent='저장 중...';
   admPushToGitHub(function(){
@@ -1045,14 +1045,7 @@ function admGetCurrentHTML(){
   html=html.replace(/var ADM_CATS=\[.*?\];/,'var ADM_CATS='+JSON.stringify(ADM_CATS)+';');
 
   // 안내메시지 반영
-  var _lines=html.split('\n');
-  for(var _i=0;_i<_lines.length;_i++){
-    if(_lines[_i].indexOf('var ADM_NOTICE=')===0&&_lines[_i].indexOf('indexOf')===-1){
-      _lines[_i]='var ADM_NOTICE='+JSON.stringify(ADM_NOTICE)+';';
-      break;
-    }
-  }
-  html=_lines.join('\n');
+  html=html.replace(/var _WDN_="안녕하세요. 👋<br><br><b>하드웨어 챗봇</b>입니다.<br><br>본 챗봇은 Q&amp;A 방식이 아닌 제품 검색 시 나오는 <b>이미지와 도면 상세설명 페이지</b>의 내용을 확인하는 용도이며,<br>상세설명 페이지의 내용 중 수정이 필요하거나 궁금했던 내용의 답이 없을 시 <b>관리자질문</b>에 적어 보내면 확인 후 실시간 업데이트 됩니다.<br><br><b>* 검색방법</b><br>1. 안내 메시지 아래 전체 카테고리에서 필요한 제품 클릭 (마우스 클릭으로만 검색)<br>2. 제품명을 하단 검색란에 입력 &nbsp; 예) <i>p-51</i> &nbsp; 실런더 51만 검색하여도 검색어 자동완성으로 검색 가능<br>3. 간단한 질문으로 검색 가능 &nbsp; 예) <i>45t 정적용가능 모티스</i>, <i>인조대리석 납기</i> 등";
 
   return html;
 }tml lang="ko"><head>
@@ -2023,7 +2016,7 @@ async function admCloseIssue(num,btn){
 function admNoticeLoad(){
   var ta=document.getElementById('adm-notice-ta');
   // HTML → 편집 가능 텍스트로 변환
-  ta.value=ADM_NOTICE
+  ta.value=_WDN_
     .replace(/<br>/gi,'\n')
     .replace(/&amp;/g,'&')
     .replace(/&nbsp;/g,' ');
@@ -2041,7 +2034,7 @@ function admNoticeSave(){
   var raw=document.getElementById('adm-notice-ta').value.trim();
   if(!raw){alert('내용을 입력해 주세요.');return;}
   var html=raw.replace(/&(?!amp;|nbsp;|lt;|gt;)/g,'&amp;').replace(/\n/g,'<br>');
-  ADM_NOTICE=html;
+  _WDN_=html;
   var msgEl=document.getElementById('adm-notice-msg');
   msgEl.style.color='#888';msgEl.textContent='저장 중...';
   admPushToGitHub(function(){
@@ -2102,5 +2095,5 @@ function admGetCurrentHTML(){
   html=html.replace(/var ADM_CATS=\[.*?\];/,'var ADM_CATS='+JSON.stringify(ADM_CATS)+';');
 
   // 안내메시지 반영
-  var _nm=html.indexOf('var ADM_NOTICE="안녕하세요. 👋<br><br><b>하드웨어 챗봇</b>입니다.<br><br>본 챗봇은 Q&amp;A 방식이 아닌 제품 검색 시 나오는 <b>이미지와 도면 상세설명 페이지</b>의 내용을 확인하는 용도이며,<br>상세설명 페이지의 내용 중 수정이 필요하거나 궁금했던 내용의 답이 없을 시 <b>관리자질문</b>에 적어 보내면 확인 후 실시간 업데이트 됩니다.<br><br><b>* 검색방법</b><br>1. 안내 메시지 아래 전체 카테고리에서 필요한 제품 클릭 (마우스 클릭으로만 검색)<br>2. 제품명을 하단 검색란에 입력 &nbsp; 예) <i>p-51</i> &nbsp; 실런더 51만 검색하여도 검색어 자동완성으로 검색 가능<br>3. 간단한 질문으로 검색 가능 &nbsp; 예) <i>45t 정적용가능 모티스</i>, <i>인조대리석 납기</i> 등";
+  var _nm=html.indexOf('var _WDN_="안녕하세요. 👋<br><br><b>하드웨어 챗봇</b>입니다.<br><br>본 챗봇은 Q&amp;A 방식이 아닌 제품 검색 시 나오는 <b>이미지와 도면 상세설명 페이지</b>의 내용을 확인하는 용도이며,<br>상세설명 페이지의 내용 중 수정이 필요하거나 궁금했던 내용의 답이 없을 시 <b>관리자질문</b>에 적어 보내면 확인 후 실시간 업데이트 됩니다.<br><br><b>* 검색방법</b><br>1. 안내 메시지 아래 전체 카테고리에서 필요한 제품 클릭 (마우스 클릭으로만 검색)<br>2. 제품명을 하단 검색란에 입력 &nbsp; 예) <i>p-51</i> &nbsp; 실런더 51만 검색하여도 검색어 자동완성으로 검색 가능<br>3. 간단한 질문으로 검색 가능 &nbsp; 예) <i>45t 정적용가능 모티스</i>, <i>인조대리석 납기</i> 등";
 var ASK_TOKEN=(function(){var a='github_pat_11CFYZRSY';var b='02QPAlV68b2wu_w75Vm4gejmQh2A6XOYRnhv3BimYZNS3cn3SFCX71n4lEKJCSDNRNFrrQwVa';return a+b;})();>

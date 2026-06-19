@@ -5,7 +5,27 @@
 <style>
 :root{--p:#1a4fa0;--pd:#0d3578;--pl:#e8f0fe;--bg:#eef1f6;--w:#fff;--tx:#1a1f2e;--s:#5a6478;--b:#dde3ed}
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif}
-body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:16px}
+body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:16px;gap:14px}
+#side-ask{width:260px;flex-shrink:0;background:var(--w);border-radius:18px;box-shadow:0 4px 24px rgba(26,79,160,.12);display:flex;flex-direction:column;height:98vh;overflow:hidden;align-self:flex-start;position:sticky;top:16px}
+#side-ask-hdr{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;padding:11px 14px;border-radius:18px 18px 0 0;font-size:13px;font-weight:700;display:flex;align-items:center;gap:7px}
+#side-ask-body{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+#side-ask-name,#side-ask-text{width:100%;box-sizing:border-box;padding:8px 10px;border:1px solid #dde3f0;border-radius:8px;font-size:13px;font-family:inherit;outline:none}
+#side-ask-text{resize:vertical;min-height:100px}
+#side-ask-send{width:100%;padding:9px;background:var(--p);color:#fff;border:none;border-radius:8px;cursor:pointer;font-size:13px;font-weight:700;font-family:inherit;transition:background .15s}
+#side-ask-send:hover{background:var(--pd)}
+#side-ask-send:disabled{background:#aaa;cursor:not-allowed}
+#side-ask-msg{font-size:12px;text-align:center;padding:4px 0;min-height:18px}
+#side-ask-list{flex:1;overflow-y:auto;padding:10px 12px;display:flex;flex-direction:column;gap:8px}
+.ask-item{background:#f4f7ff;border-radius:10px;padding:10px 12px;border-left:3px solid var(--p)}
+.ask-item-hd{display:flex;justify-content:space-between;align-items:center;margin-bottom:4px}
+.ask-item-name{font-size:12px;font-weight:700;color:var(--p)}
+.ask-item-date{font-size:11px;color:#aaa}
+.ask-item-body{font-size:12px;color:#444;white-space:pre-wrap;word-break:break-all}
+.ask-item-closed{opacity:.5;border-left-color:#aaa}
+.ask-tab-btns{display:flex;border-bottom:1px solid #eee;flex-shrink:0}
+.ask-tab{flex:1;padding:8px 4px;font-size:12px;font-weight:600;border:none;background:none;cursor:pointer;color:#999;border-bottom:2px solid transparent;font-family:inherit}
+.ask-tab.on{color:var(--p);border-bottom-color:var(--p)}
+@media(max-width:900px){#side-ask{display:none}}
 #app{width:100%;max-width:720px;background:var(--w);border-radius:22px;box-shadow:0 8px 40px rgba(26,79,160,.15);display:flex;flex-direction:column;height:98vh;overflow:hidden}
 #hdr{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;padding:13px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0}
 #hdr-ic{width:40px;height:40px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
@@ -186,6 +206,25 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script></head>
 
 <body>
+<div id="side-ask">
+  <div id="side-ask-hdr">💬 관리자에게 질문</div>
+  <div class="ask-tab-btns">
+    <button class="ask-tab on" id="ask-tab-write" onclick="askSwitchTab('write')">✏️ 질문하기</button>
+    <button class="ask-tab" id="ask-tab-list" onclick="askSwitchTab('list')">📋 목록보기</button>
+  </div>
+  <div id="side-ask-body">
+    <div style="font-size:12px;color:#888;line-height:1.6">제품 정보 수정 요청이나 궁금한 사항을 남겨주세요. 확인 후 실시간 업데이트됩니다.</div>
+    <input id="side-ask-name" type="text" placeholder="이름 또는 부서 (선택)">
+    <textarea id="side-ask-text" placeholder="질문 또는 수정 요청 내용을 입력하세요..."></textarea>
+    <button id="side-ask-send" onclick="askSubmit()">📨 보내기</button>
+    <div id="side-ask-msg"></div>
+  </div>
+  <div id="side-ask-list" style="display:none">
+    <div id="ask-list-inner" style="display:flex;flex-direction:column;gap:8px">
+      <div style="font-size:12px;color:#aaa;text-align:center;padding:20px 0">로딩 중...</div>
+    </div>
+  </div>
+</div>
 <div id="lb" style="display: none;"><span id="lbx">×</span><img id="lbi" src="" alt=""><div id="lbc">커버</div></div>
 <div id="app">
   <div id="hdr">
@@ -289,6 +328,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
       <button class="adm-tab" id="adm-tab-new" onclick="admSwitchTab('new')">➕ 새 제품 추가</button>
       <button class="adm-tab" id="adm-tab-cat" onclick="admSwitchTab('cat')">🏷 카테고리</button>
       <button class="adm-tab" id="adm-tab-stock" onclick="admSwitchTab('stock')">📦 재고</button>
+      <button class="adm-tab" id="adm-tab-issues" onclick="admSwitchTab('issues')">💬 질문목록</button>
     </div>
 
     <!-- 탭1: 기존 제품 편집 -->
@@ -514,6 +554,14 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
 
       <div class="adm-foot">
         <button class="adm-close-btn" onclick="admClosePanel()">닫기</button>
+      </div>
+    </div>
+
+    <!-- 탭5: 질문 목록 -->
+    <div id="adm-issues-view" style="display:none;padding:2px 2px 16px">
+      <div class="adm-sec">
+        <p class="adm-sec-hd">💬 사용자 질문 목록 <button onclick="admLoadIssues()" style="margin-left:8px;padding:2px 10px;font-size:11px;border:1px solid var(--p);border-radius:5px;background:#fff;color:var(--p);cursor:pointer">새로고침</button></p>
+        <div id="adm-issues-inner" style="display:flex;flex-direction:column;gap:8px;max-height:60vh;overflow-y:auto"></div>
       </div>
     </div>
 
@@ -773,6 +821,118 @@ function admGhUpdateStatus(){
 }
 
 /* 현재 HTML 전체를 문자열로 직렬화 */
+// ── 관리자질문 (GitHub Issues) ──────────────────────────
+var ASK_REPO_OWNER='kpslove5307';
+var ASK_REPO_NAME='woodin';
+
+async function askSubmit(){
+  var name=document.getElementById('side-ask-name').value.trim()||'익명';
+  var text=document.getElementById('side-ask-text').value.trim();
+  var btn=document.getElementById('side-ask-send');
+  var msg=document.getElementById('side-ask-msg');
+  if(!text){msg.style.color='#c33';msg.textContent='내용을 입력해 주세요.';return;}
+  btn.disabled=true;msg.style.color='#888';msg.textContent='전송 중...';
+  var cfg=admGhLoadConfig();
+  if(!cfg||!cfg.token){msg.style.color='#c33';msg.textContent='전송 토큰이 설정되지 않았습니다.';btn.disabled=false;return;}
+  var title='[질문] '+name+' — '+text.substring(0,40)+(text.length>40?'...':'');
+  var body='**작성자:** '+name+'\n\n**내용:**\n'+text+'\n\n---\n*우딘 하드웨어 챗봇에서 접수*';
+  try{
+    var res=await fetch('https://api.github.com/repos/'+ASK_REPO_OWNER+'/'+ASK_REPO_NAME+'/issues',{
+      method:'POST',
+      headers:{Authorization:'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+      body:JSON.stringify({title:title,body:body,labels:['챗봇질문']})
+    });
+    if(res.ok){
+      msg.style.color='#1a7a3a';msg.textContent='✅ 전송되었습니다! 확인 후 업데이트됩니다.';
+      document.getElementById('side-ask-text').value='';
+      document.getElementById('side-ask-name').value='';
+    } else {
+      var e=await res.json().catch(function(){return{};});
+      msg.style.color='#c33';msg.textContent='오류: '+(e.message||res.status);
+    }
+  }catch(err){msg.style.color='#c33';msg.textContent='네트워크 오류: '+err.message;}
+  btn.disabled=false;
+}
+
+function askSwitchTab(tab){
+  document.getElementById('ask-tab-write').classList.toggle('on',tab==='write');
+  document.getElementById('ask-tab-list').classList.toggle('on',tab==='list');
+  document.getElementById('side-ask-body').style.display=(tab==='write')?'flex':'none';
+  document.getElementById('side-ask-list').style.display=(tab==='list')?'block':'none';
+  if(tab==='list')askLoadList();
+}
+
+async function askLoadList(){
+  var inner=document.getElementById('ask-list-inner');
+  inner.innerHTML='<div style="font-size:12px;color:#aaa;text-align:center;padding:20px 0">로딩 중...</div>';
+  var cfg=admGhLoadConfig();
+  if(!cfg||!cfg.token){inner.innerHTML='<div style="font-size:12px;color:#c33;text-align:center;padding:12px">토큰 미설정</div>';return;}
+  try{
+    var res=await fetch('https://api.github.com/repos/'+ASK_REPO_OWNER+'/'+ASK_REPO_NAME+'/issues?labels=%EC%B1%97%EB%B4%87%EC%A7%88%EB%AC%B8&state=all&per_page=30',{
+      headers:{Authorization:'token '+cfg.token,'Accept':'application/vnd.github.v3+json'}
+    });
+    var issues=await res.json();
+    if(!Array.isArray(issues)||issues.length===0){inner.innerHTML='<div style="font-size:12px;color:#aaa;text-align:center;padding:20px 0">접수된 질문이 없습니다.</div>';return;}
+    inner.innerHTML='';
+    issues.forEach(function(iss){
+      var d=new Date(iss.created_at);
+      var ds=(d.getMonth()+1)+'/'+(d.getDate())+' '+(d.getHours())+':'+(String(d.getMinutes()).padStart(2,'0'));
+      var closed=iss.state==='closed';
+      var div=document.createElement('div');
+      div.className='ask-item'+(closed?' ask-item-closed':'');
+      var bodyText=iss.body?iss.body.replace(/\*\*[^*]+\*\*\s*/g,'').replace(/---[\s\S]*/,'').trim():'';
+      div.innerHTML='<div class="ask-item-hd"><span class="ask-item-name">'+(closed?'✅ ':'🔔 ')+iss.title.replace('[질문] ','')+'</span><span class="ask-item-date">'+ds+'</span></div>'
+        +'<div class="ask-item-body">'+bodyText+'</div>';
+      inner.appendChild(div);
+    });
+  }catch(e){inner.innerHTML='<div style="font-size:12px;color:#c33;padding:8px">오류: '+e.message+'</div>';}
+}
+
+async function admLoadIssues(){
+  var inner=document.getElementById('adm-issues-inner');
+  inner.innerHTML='<div style="font-size:12px;color:#aaa;text-align:center;padding:20px 0">로딩 중...</div>';
+  var cfg=admGhLoadConfig();
+  if(!cfg||!cfg.token){inner.innerHTML='<div style="font-size:12px;color:#c33;text-align:center;padding:12px">GitHub 토큰을 먼저 설정해 주세요.</div>';return;}
+  try{
+    var res=await fetch('https://api.github.com/repos/'+ASK_REPO_OWNER+'/'+ASK_REPO_NAME+'/issues?labels=%EC%B1%97%EB%B4%87%EC%A7%88%EB%AC%B8&state=open&per_page=50',{
+      headers:{Authorization:'token '+cfg.token,'Accept':'application/vnd.github.v3+json'}
+    });
+    var issues=await res.json();
+    if(!Array.isArray(issues)||issues.length===0){inner.innerHTML='<div style="font-size:12px;color:#aaa;text-align:center;padding:20px 0">미처리 질문이 없습니다. 👍</div>';return;}
+    inner.innerHTML='';
+    issues.forEach(function(iss){
+      var d=new Date(iss.created_at);
+      var ds=(d.getMonth()+1)+'/'+(d.getDate())+' '+(d.getHours())+':'+(String(d.getMinutes()).padStart(2,'0'));
+      var div=document.createElement('div');
+      div.style.cssText='background:#f4f7ff;border-radius:10px;padding:10px 12px;border-left:3px solid var(--p)';
+      var bodyText=iss.body?iss.body.replace(/---[\s\S]*/,'').trim():'';
+      div.innerHTML='<div style="display:flex;justify-content:space-between;align-items:flex-start;gap:6px;margin-bottom:5px">'
+        +'<span style="font-size:12px;font-weight:700;color:var(--p);flex:1">'+iss.title.replace('[질문] ','')+'</span>'
+        +'<span style="font-size:11px;color:#aaa;flex-shrink:0">'+ds+'</span></div>'
+        +'<div style="font-size:12px;color:#444;white-space:pre-wrap;word-break:break-all;margin-bottom:8px">'+bodyText+'</div>'
+        +'<div style="display:flex;gap:6px">'
+        +'<a href="'+iss.html_url+'" target="_blank" style="font-size:11px;color:var(--p);text-decoration:none;padding:3px 8px;border:1px solid var(--p);border-radius:5px">GitHub에서 보기</a>'
+        +'<button onclick="admCloseIssue('+iss.number+',this)" style="font-size:11px;padding:3px 8px;border:1px solid #28a745;color:#28a745;background:#fff;border-radius:5px;cursor:pointer">✅ 처리완료</button>'
+        +'</div>';
+      inner.appendChild(div);
+    });
+  }catch(e){inner.innerHTML='<div style="font-size:12px;color:#c33;padding:8px">오류: '+e.message+'</div>';}
+}
+
+async function admCloseIssue(num,btn){
+  var cfg=admGhLoadConfig();
+  if(!cfg||!cfg.token)return;
+  btn.disabled=true;btn.textContent='처리 중...';
+  try{
+    await fetch('https://api.github.com/repos/'+ASK_REPO_OWNER+'/'+ASK_REPO_NAME+'/issues/'+num,{
+      method:'PATCH',
+      headers:{Authorization:'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+      body:JSON.stringify({state:'closed'})
+    });
+    admLoadIssues();
+  }catch(e){btn.disabled=false;btn.textContent='✅ 처리완료';alert('오류: '+e.message);}
+}
+
 function admGetCurrentHTML(){
   var hideIds=['adm-upload-overlay','adm-panel','adm-login-overlay','adm-gh-modal','adm-chpw-modal','lb'];
   var removed=[];
@@ -1098,12 +1258,15 @@ function admSwitchTab(tab){
   document.getElementById('adm-tab-new').classList.toggle('on',tab==='new');
   document.getElementById('adm-tab-cat').classList.toggle('on',tab==='cat');
   document.getElementById('adm-tab-stock').classList.toggle('on',tab==='stock');
+  document.getElementById('adm-tab-issues').classList.toggle('on',tab==='issues');
   document.getElementById('adm-edit-view').classList.toggle('on',tab==='edit');
   document.getElementById('adm-new-view').classList.toggle('on',tab==='new');
   document.getElementById('adm-cat-view').style.display=(tab==='cat')?'block':'none';
   document.getElementById('adm-stock-view').style.display=(tab==='stock')?'block':'none';
+  document.getElementById('adm-issues-view').style.display=(tab==='issues')?'block':'none';
   if(tab==='cat')admCatRender();
   if(tab==='stock'){admStockRenderList('');admStockUpdateDate();}
+  if(tab==='issues')admLoadIssues();
 }
 
 // ── 카테고리 관리 ──────────────────────────────────────

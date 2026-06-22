@@ -1765,18 +1765,47 @@ function getProductText(k){
   return parts.join(' ').toLowerCase();
 }
 
+// 쿼리를 의미 단위로 분리 (공백 + 숫자/한글 경계 분리)
+function tokenize(q){
+  var ql=q.trim().toLowerCase();
+  // 공백으로 먼저 분리 후 각 덩어리를 숫자/문자 경계로 추가 분리
+  var raw=ql.split(/\s+/);
+  var tokens=[];
+  raw.forEach(function(w){
+    if(!w)return;
+    // 숫자↔비숫자 경계에서 분리
+    var parts=w.replace(/([0-9]+)([^0-9])/g,'$1 $2').replace(/([^0-9])([0-9]+)/g,'$1 $2').split(/\s+/);
+    parts=parts.filter(function(p){return p.length>0;});
+    // 원본 덩어리도 포함 (45t 같은 단위는 그대로 매칭)
+    tokens.push(w);
+    parts.forEach(function(p){if(p!==w)tokens.push(p);});
+  });
+  return tokens.filter(function(v,i,a){return a.indexOf(v)===i&&v.length>0;});
+}
+
+// 공백 없이 붙여쓴 쿼리의 실질 단어 수 추정
+function countSemanticWords(q){
+  var ql=q.trim().toLowerCase();
+  // 공백으로 분리된 단어 수
+  var spaceWords=ql.split(/\s+/).filter(function(w){return w.length>0;});
+  if(spaceWords.length>1)return spaceWords.length;
+  // 공백 없으면 숫자/문자 경계 분리 수로 추정
+  var joined=ql.replace(/\s/g,'');
+  var parts=joined.replace(/([0-9]+)([^0-9])/g,'$1 $2').replace(/([^0-9])([0-9]+)/g,'$1 $2').split(/\s+/).filter(function(p){return p.length>0;});
+  return Math.max(spaceWords.length, parts.length);
+}
+
 // 단어 분리 스마트 검색: 단어 많이 매칭될수록 높은 점수
 function smartSearch(q){
-  var words=q.trim().toLowerCase().split(/\s+/).filter(function(w){return w.length>0;});
+  var words=tokenize(q);
   if(!words.length)return[];
   var scored=[];
   Object.keys(DB).forEach(function(k){
     var txt=getProductText(k);
     var score=0;
     words.forEach(function(w){if(txt.indexOf(w)!==-1)score++;});
-    if(score>0)scored.push({k:k,score:score});
+    if(score>0)scored.push({k:k,score:score,words:words});
   });
-  // 점수 내림차순, 같으면 이름순
   scored.sort(function(a,b){return b.score-a.score||a.k.localeCompare(b.k,'ko');});
   return scored;
 }
@@ -1811,8 +1840,8 @@ function respond(q){
     addBot('안녕하세요! 👋<br>우딘 하드웨어 챗봇입니다.',ADM_CATS);return;
   }
   // 스마트 검색 (제품명 검색 실패 시 → info/descText 포함 전문 검색)
-  var words=q.trim().split(/\s+/).filter(function(w){return w.length>0;});
-  var totalWords=words.length;
+  var words=tokenize(q);
+  var totalWords=countSemanticWords(q); // 붙여쓰기 포함 의미단어 수
   var scored=smartSearch(q);
   if(scored.length>0){
     // 단어 1개: 그대로 / 2개 이상: 70% 이상 매칭 필요

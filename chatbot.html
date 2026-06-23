@@ -88,6 +88,8 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
 #ii:focus{border-color:var(--p);background:#fff}
 #ii::placeholder{color:#a0aec0}
 #sb{background:var(--p);color:#fff;border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit}
+#iqb{background:#f0f4ff;color:#1a4fa0;border:1.5px solid #c5d0e8;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:16px;flex-shrink:0;transition:background .15s}
+#iqb:hover{background:#dce6ff}
 #sb:hover{background:var(--pd)}
 #lb{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.92);z-index:999999;align-items:center;justify-content:center;flex-direction:column}
 #lb.show{display:flex}
@@ -690,7 +692,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
 <div id="inquiry-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99997;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:14px;padding:24px 20px;width:92%;max-width:400px;box-shadow:0 4px 24px rgba(0,0,0,0.18)">
     <div style="font-size:15px;font-weight:700;color:#1a4fa0;margin-bottom:6px">✏️ 제품 추가 · 개선 요청</div>
-    <div style="font-size:12px;color:#888;margin-bottom:14px;line-height:1.6">추가를 원하는 제품이나 개선을 바라는 점을 적어 주시면<br>관리자가 확인 후 피드백 드립니다.</div>
+    <div style="font-size:12px;color:#555;margin-bottom:14px;line-height:1.7;background:#f0f4ff;border-radius:8px;padding:10px 12px">하드웨어 중 추가를 원하는 제품이나 개선을 바라는 점을<br>적어 주시면 관리자가 확인 후 피드백 드립니다.</div>
     <input id="inquiry-writer" type="text" placeholder="이름 및 대리점명" style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;margin-bottom:10px;outline:none">
     <textarea id="inquiry-content" placeholder="내용을 입력하세요" rows="5" style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;font-family:inherit;margin-bottom:12px;outline:none"></textarea>
     <div id="inquiry-err" style="display:none;color:#c33;font-size:12px;margin-bottom:8px;text-align:center"></div>
@@ -702,13 +704,11 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
 </div>
 
   <div id="msgs"></div>
-  <div id="inquiry-bar" style="display:flex;justify-content:flex-end;padding:4px 12px 0;border-top:1px solid #f0f3f8">
-    <button onclick="inquiryOpen()" style="background:none;border:none;color:#90a4ae;font-size:11px;cursor:pointer;padding:4px 6px">✏️ 제품 추가·개선 요청</button>
-  </div>
   <div id="ir" style="position:relative">
     <div id="ac" class=""></div>
     <input id="ii" type="text" placeholder="🔍 제품명을 입력하세요 (예: 대칭, 40, 커브...)">
     <button id="sb">➤</button>
+    <button id="iqb" onclick="inquiryOpen()" title="제품 추가·개선 요청">✏️</button>
   </div>
 </div>
 <script>

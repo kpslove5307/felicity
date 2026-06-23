@@ -1173,7 +1173,7 @@ function admGetCurrentHTML(){
 
   // 사용자 목록 반영
   // ADM_USERS 반영 - MARKER 방식
-  var usS='/*USERS_START*/[{"id":"1234","name":"테스트1234","pw":"1234"},{"id":"우딘","name":"우딘","pw":"1234","replies":[{"issueNum":14,"text":"시러 안해줄꺼야","date":"2026. 6. 23."}]}]/*USERS_END*/';
+  var usS='/*USERS_START*/';var usE='/*USERS_END*/';
   var usSi=html.indexOf(usS);var usEi=html.indexOf(usE);
   if(usSi!==-1&&usEi!==-1){
     html=html.substring(0,usSi)+usS+JSON.stringify(ADM_USERS)+usE+html.substring(usEi+usE.length);
@@ -2377,7 +2377,7 @@ async function admLoadInquiries(){
 }
 
 /* ══ 사용자 문의 삭제 ══ */
-async async function userDeleteOneInquiry(issueNum, btn){
+async function userDeleteOneInquiry(issueNum, btn){
   if(!confirm('이 문의를 삭제하시겠습니까?'))return;
   btn.disabled=true; btn.textContent='삭제중...';
   var cfg=getIssueConfig();

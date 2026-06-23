@@ -281,6 +281,11 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
         ✅ 접수되었습니다!<br><span style="font-weight:400;font-size:11px;color:#555">관리자가 확인 후 피드백 드립니다.</span>
       </div>
     </div>
+    <!-- 관리자 답글 섹션 -->
+    <div id="user-replies-section" style="display:none;border-top:1px solid #f0f0f0;padding:16px">
+      <div style="font-size:13px;font-weight:700;color:#1a4fa0;margin-bottom:10px">📬 관리자 답글</div>
+      <div id="user-replies-box"></div>
+    </div>
   </div>
 </div>
 
@@ -727,6 +732,11 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
     <div style="display:flex;gap:8px">
       <button id="inquiry-submit-btn" onclick="inquirySubmit()" style="flex:1;padding:10px;background:#1a4fa0;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">제출</button>
       <button onclick="inquiryClose()" style="flex:1;padding:10px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:13px;cursor:pointer">취소</button>
+    </div>
+    <!-- 관리자 답글 (모달용) -->
+    <div id="modal-replies-section" style="display:none;border-top:1px solid #f0f0f0;padding-top:12px;margin-top:4px">
+      <div style="font-size:13px;font-weight:700;color:#1a4fa0;margin-bottom:8px">📬 관리자 답글</div>
+      <div id="modal-replies-box"></div>
     </div>
   </div>
 </div>
@@ -1951,6 +1961,7 @@ function gateInit(){
       CURRENT_USER = saved;
       document.getElementById('user-gate').style.display='none';
       gateShowUserInfo();
+      showUserReplies();
       return;
     }
   } catch(e){}
@@ -2057,6 +2068,7 @@ function gateDoLogin(){
   sessionStorage.setItem('woodin_user', JSON.stringify(CURRENT_USER));
   document.getElementById('user-gate').style.display='none';
   gateShowUserInfo();
+  showUserReplies();
 }
 
 async function gateDoSignup(){
@@ -2198,21 +2210,92 @@ async function admLoadInquiries(){
       var dateMatch=(issue.body||'').match(/접수일시: (.+)/);
       var dateStr=dateMatch?dateMatch[1]:'';
 
+      // 기존 답글 찾기
+      var existReply=null;
+      ADM_USERS.forEach(function(u){
+        if(u.name===writer&&u.replies){
+          u.replies.forEach(function(r){if(r.issueNum===issue.number)existReply=r;});
+        }
+      });
+      var replyId='reply-'+issue.number;
       var card=document.createElement('div');
       card.style.cssText='padding:12px 14px;border-bottom:1px solid #f0f0f0;font-size:12px';
+      var replyHtml=existReply?'<div style="background:#f0f7ff;border-left:3px solid #1a4fa0;padding:8px 10px;border-radius:0 6px 6px 0;margin-bottom:8px;font-size:11px"><span style="color:#1a4fa0;font-weight:700">📣 관리자 답글</span><br><span style="color:#333;white-space:pre-wrap">'+existReply.text+'</span></div>':'';
       card.innerHTML=
         '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">'
         +'<span style="font-weight:700;color:#333">'+writer+'</span>'
         +'<span style="color:#bbb;font-size:10px">'+dateStr+'</span>'
         +'<button onclick="admDeleteInquiry('+issue.number+',this)" style="margin-left:auto;padding:3px 10px;background:#fff0f0;border:1px solid #fcc;border-radius:6px;font-size:11px;cursor:pointer;color:#c33">🗑 삭제</button>'
         +'</div>'
-        +'<div style="color:#555;white-space:pre-wrap;line-height:1.6">'+contentText+'</div>';
+        +'<div style="color:#555;white-space:pre-wrap;line-height:1.6;margin-bottom:8px">'+contentText+'</div>'
+        +replyHtml
+        +'<div style="display:flex;gap:6px;margin-top:4px">'
+        +'<textarea id="'+replyId+'" placeholder="답글 입력..." rows="2" style="flex:1;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:12px;font-family:inherit;resize:vertical;outline:none">'+(existReply?existReply.text:'')+'</textarea>'
+        +'<button onclick="admSaveReply('+issue.number+',' + JSON.stringify(writer) + ',' + JSON.stringify(replyId) + ',this)" style="padding:6px 12px;background:#1a4fa0;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-weight:700;align-self:flex-end">답글 저장</button>'
+        +'</div>';
       el.appendChild(card);
     });
   }catch(e){
     el.innerHTML='<div style="padding:12px;color:#c33;font-size:12px">오류: '+e.message+'</div>';
   }
 }
+
+/* ══ 관리자 답글 저장 ══ */
+function admSaveReply(issueNum, writerName, replyId, btn){
+  var text = (document.getElementById(replyId).value||'').trim();
+  if(!text){alert('답글 내용을 입력하세요.');return;}
+  btn.disabled=true; btn.textContent='저장중...';
+
+  // ADM_USERS에서 해당 사용자 찾아서 답글 저장
+  var found=false;
+  ADM_USERS.forEach(function(u){
+    if(u.name===writerName){
+      found=true;
+      if(!u.replies)u.replies=[];
+      // 같은 issueNum 답글 있으면 업데이트
+      var existing=u.replies.filter(function(r){return r.issueNum===issueNum;})[0];
+      if(existing){
+        existing.text=text;
+        existing.date=new Date().toLocaleDateString('ko-KR');
+      } else {
+        u.replies.push({issueNum:issueNum,text:text,date:new Date().toLocaleDateString('ko-KR')});
+      }
+    }
+  });
+  if(!found){alert('등록된 사용자가 아닙니다. (이름이 아이디와 다를 수 있어요)');btn.disabled=false;btn.textContent='답글 저장';return;}
+
+  // GitHub 업로드
+  admPushToGitHub(function(){
+    btn.disabled=false; btn.textContent='✅ 저장됨';
+    setTimeout(function(){btn.textContent='답글 저장';},2000);
+  });
+}
+
+/* ══ 사용자 답글 표시 ══ */
+function showUserReplies(){
+  if(!CURRENT_USER)return;
+  var user=ADM_USERS.filter(function(u){return u.id===CURRENT_USER.id;})[0];
+  if(!user||!user.replies||!user.replies.length)return;
+
+  function renderReplies(containerId, sectionId){
+    var container=document.getElementById(containerId);
+    var section=document.getElementById(sectionId);
+    if(!container||!section)return;
+    container.innerHTML='';
+    user.replies.forEach(function(r){
+      var div=document.createElement('div');
+      div.style.cssText='background:#f0f7ff;border-left:3px solid #1a4fa0;border-radius:0 8px 8px 0;padding:12px 14px;margin-bottom:8px';
+      div.innerHTML=
+        '<div style="font-size:11px;color:#1a4fa0;font-weight:700;margin-bottom:6px">📣 관리자 답글 <span style="font-weight:400;color:#aaa">'+r.date+'</span></div>'
+        +'<div style="font-size:13px;color:#333;white-space:pre-wrap;line-height:1.7">'+r.text+'</div>';
+      container.appendChild(div);
+    });
+    section.style.display='block';
+  }
+  renderReplies('user-replies-box','user-replies-section');
+  renderReplies('modal-replies-box','modal-replies-section');
+}
+
 
 async function admDeleteInquiry(issueNum, btn){
   if(!confirm('이 문의를 삭제하시겠습니까?'))return;

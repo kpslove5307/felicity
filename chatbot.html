@@ -1,5 +1,8 @@
 <!DOCTYPE html><html lang="ko"><head>
 <meta charset="UTF-8">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <meta name="viewport" content="width=device-width,initial-scale=1.0">
 <title>우딘 하드웨어 챗봇</title>
 <style>
@@ -1179,7 +1182,7 @@ function admGetCurrentHTML(){
 
   // 사용자 목록 반영
   // ADM_USERS 반영 - MARKER 방식
-  var usS='/*USERS_START*/[{"id":"1234","name":"테스트1234","pw":"1234"},{"id":"우딘","name":"우딘","pw":"1234","replies":[{"issueNum":23,"text":"시러 시러","date":"2026. 6. 23."},{"issueNum":24,"text":"나도 같이 날자","date":"2026. 6. 23."}]}]/*USERS_END*/';
+  var usS='/*USERS_START*/';var usE='/*USERS_END*/';
   var usSi=html.indexOf(usS);var usEi=html.indexOf(usE);
   if(usSi!==-1&&usEi!==-1){
     html=html.substring(0,usSi)+usS+JSON.stringify(ADM_USERS)+usE+html.substring(usEi+usE.length);

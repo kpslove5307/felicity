@@ -2554,7 +2554,7 @@ async function userDeleteOneInquiry(issueNum, btn){
       headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
       body:JSON.stringify({state:'closed'})
     });
-    var card=btn.closest('div[data-issue-num]')||btn.closest('div[style*="border-radius:10px"]');
+    var card=btn.closest('.user-inq-card');
     if(card)card.remove();
   }catch(e){btn.disabled=false;btn.textContent='🗑 삭제';}
 }
@@ -2578,7 +2578,7 @@ async function userDeleteSelectedInquiries(containerId){
     }catch(e){}
   }
   checked.forEach(function(cb){
-    var card=cb.closest('div[style*="border-radius:10px"]');
+    var card=cb.closest('.user-inq-card');
     if(card)card.remove();
   });
   alert('✅ '+nums.length+'개 삭제되었습니다.');
@@ -2658,6 +2658,7 @@ async function loadMyInquiries(){
       }
 
       var card=document.createElement('div');
+      card.className='user-inq-card';
       card.style.cssText='background:#f8f9fc;border-radius:10px;padding:12px 14px;margin-bottom:10px;border:1px solid #e8edf5';
       card.dataset.issueNum=issue.number;
       card.innerHTML=

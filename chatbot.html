@@ -43,7 +43,9 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
 .bub.u{background:var(--p);color:#fff;border-bottom-right-radius:4px}
 .av{width:28px;height:28px;border-radius:50%;background:var(--p);color:#fff;display:flex;align-items:center;justify-content:center;font-size:13px;flex-shrink:0;align-self:flex-end}
 .ts{font-size:10px;color:#a0aec0;margin-top:2px}
-.chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:5px}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:5px}
+.chip-wrap{display:flex;flex-direction:column;align-items:flex-start;gap:2px}
+.chip-cat{font-size:10px;color:#90a4ae;padding:0 4px;white-space:nowrap}
 .chip{background:#fff;border:1.5px solid var(--p);border-radius:18px;padding:4px 11px;font-size:11.5px;cursor:pointer;color:var(--p);font-weight:600;transition:all .15s;white-space:nowrap;font-family:inherit}
 .chip:hover{background:var(--p);color:#fff}
 /* 제품카드 */
@@ -1749,8 +1751,16 @@ function addBot(html,chips,extra){
   if(chips&&chips.length){
     var cr=document.createElement('div');cr.className='chips';
     chips.forEach(function(c){
+      var wrap=document.createElement('div');wrap.className='chip-wrap';
       var b=document.createElement('button');b.className='chip';b.textContent=c;
-      b.addEventListener('click',function(){handleInput(c);});cr.appendChild(b);
+      b.addEventListener('click',function(){handleInput(c);});
+      wrap.appendChild(b);
+      // 제품이면 카테고리 표시, 카테고리면 표시 안 함
+      if(DB[c]&&DB[c].cat){
+        var catDiv=document.createElement('div');catDiv.className='chip-cat';catDiv.textContent=DB[c].cat;
+        wrap.appendChild(catDiv);
+      }
+      cr.appendChild(wrap);
     });
     w.appendChild(cr);
   }

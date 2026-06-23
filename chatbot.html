@@ -725,7 +725,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
       <textarea id="inquiry-content" placeholder="내용을 입력하세요" rows="8" style="width:100%;box-sizing:border-box;padding:9px 12px;border:1px solid #ddd;border-radius:8px;font-size:13px;resize:vertical;font-family:inherit;margin-bottom:12px;outline:none"></textarea>
     <div id="inquiry-err" style="display:none;color:#c33;font-size:12px;margin-bottom:8px;text-align:center"></div>
     <div style="display:flex;gap:8px">
-      <button onclick="inquirySubmit()" style="flex:1;padding:10px;background:#1a4fa0;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">제출</button>
+      <button id="inquiry-submit-btn" onclick="inquirySubmit()" style="flex:1;padding:10px;background:#1a4fa0;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">제출</button>
       <button onclick="inquiryClose()" style="flex:1;padding:10px;background:#f0f0f0;color:#555;border:none;border-radius:8px;font-size:13px;cursor:pointer">취소</button>
     </div>
   </div>
@@ -2150,8 +2150,8 @@ async function inquirySubmit(){
   if(!content){err.textContent='내용을 입력하세요.';err.style.display='block';return;}
 
   var cfg = getIssueConfig();
-  var btn = document.querySelector('#inquiry-modal button');
-  btn.disabled=true; btn.textContent='제출 중...';
+  var btn = document.getElementById('inquiry-submit-btn');
+  if(btn){btn.disabled=true; btn.textContent='제출 중...';}
   try{
     var res = await fetch('https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/issues',{
       method:'POST',

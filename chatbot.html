@@ -2142,9 +2142,9 @@ async function sideInquirySubmit(){
       err.textContent='전송 실패: '+(j.message||'오류');err.style.display='block';
     }
   }catch(e){
-    err.textContent='네트워크 오류: '+e.message;err.style.display='block';
+    if(e.message&&e.message.indexOf('Cannot set')===-1&&e.message.indexOf('null')===-1){err.textContent='전송 오류: '+e.message;err.style.display='block';}
   }
-  btn.disabled=false; btn.textContent='제출하기';
+  if(btn){btn.disabled=false; btn.textContent='제출하기';}
 }
 
 /* ══ 문의(제품추가·개선요청) 기능 ══════════════════════════════ */

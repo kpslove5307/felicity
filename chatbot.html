@@ -208,7 +208,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
       <div style="font-size:12px;color:#90a4ae;margin-top:4px">로그인 후 이용하실 수 있습니다</div>
     </div>
     <!-- 로그인 폼 -->
-    <div id="gate-login-form" style="display: block;">
+    <div id="gate-login-form" style="display: none;">
       <input id="gate-id" type="text" placeholder="아이디" autocomplete="username" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:10px;outline:none">
       <input id="gate-pw" type="password" placeholder="비밀번호" autocomplete="current-password" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:14px;outline:none">
       <div id="gate-login-err" style="display:none;color:#c33;font-size:12px;margin-bottom:10px;text-align:center"></div>
@@ -222,10 +222,10 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
       </div>
     </div>
     <!-- 관리자 로그인 폼 -->
-    <div id="gate-admin-form" style="display: none;">
+    <div id="gate-admin-form" style="display: block;">
       <div style="text-align:center;margin-bottom:14px;font-size:13px;color:#555;font-weight:600">⚙ 관리자 로그인</div>
       <input id="gate-adm-pw" type="password" placeholder="관리자 비밀번호" style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:12px;outline:none">
-      <div id="gate-adm-err" style="display: block; color: rgb(204, 51, 51); font-size: 12px; margin-bottom: 10px; text-align: center;">비밀번호가 올바르지 않습니다.</div>
+      <div id="gate-adm-err" style="display: none; color: rgb(204, 51, 51); font-size: 12px; margin-bottom: 10px; text-align: center;">비밀번호가 올바르지 않습니다.</div>
       <button onclick="gateDoAdminLogin()" style="width:100%;padding:11px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">관리자 입장</button>
       <div style="text-align:center;margin-top:12px">
         <button onclick="gateShowLogin()" style="background:none;border:none;color:#90a4ae;font-size:12px;cursor:pointer;text-decoration:underline">← 일반 로그인으로</button>
@@ -272,13 +272,11 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
     <!-- 폼 -->
     <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
 
-      <textarea id="side-content" placeholder="내용을 입력하세요&#10;예) P-01 블루 컬러 추가 요청&#10;예) 실린더 규격표 상세설명 추가 요청" rows="6"
-        style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #e0e7f0;border-radius:10px;font-size:13px;resize:vertical;font-family:inherit;outline:none;line-height:1.6"
-        onfocus="this.style.borderColor='#1a4fa0'" onblur="this.style.borderColor='#e0e7f0'"></textarea>
+      <textarea id="side-content" placeholder="내용을 입력하세요
+예) P-01 블루 컬러 추가 요청
+예) 실린더 규격표 상세설명 추가 요청" rows="6" style="width: 100%; box-sizing: border-box; padding: 9px 12px; border: 1.5px solid rgb(224, 231, 240); border-radius: 10px; font-size: 13px; resize: vertical; font-family: inherit; outline: none; line-height: 1.6;" onfocus="this.style.borderColor='#1a4fa0'" onblur="this.style.borderColor='#e0e7f0'"></textarea>
       <div id="side-err" style="display:none;color:#c33;font-size:12px;text-align:center"></div>
-      <button id="side-submit-btn" onclick="sideInquirySubmit()"
-        style="width:100%;padding:11px;background:#1a4fa0;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s"
-        onmouseover="this.style.background='#1565c0'" onmouseout="this.style.background='#1a4fa0'">제출하기</button>
+      <button onclick="sideInquirySubmit()" style="width: 100%; padding: 11px; background: rgb(26, 79, 160); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 10px; font-size: 13px; font-weight: 700; cursor: pointer; transition: background 0.15s;" onmouseover="this.style.background='#1565c0'" onmouseout="this.style.background='#1a4fa0'">제출하기</button>
       <div id="side-ok" style="display:none;text-align:center;padding:10px;background:#f0fff4;border-radius:10px;color:#27ae60;font-size:13px;font-weight:600">
         ✅ 접수되었습니다!<br><span style="font-weight:400;font-size:11px;color:#555">관리자가 확인 후 피드백 드립니다.</span>
       </div>
@@ -682,13 +680,13 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
     <div id="adm-users-view" style="display: block; padding: 0px 2px 16px;">
       <div class="adm-sec">
         <div style="font-size:13px;font-weight:700;color:#333;margin-bottom:10px">📨 가입 신청 목록</div>
-        <div id="adm-pending-users" style="max-height:300px;overflow-y:auto;border:1px solid #eee;border-radius:8px;padding:4px"><div style="display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px; opacity: 0.4;"><span style="flex:1"><b>테스트1234</b> <span style="color:#888">(1234)</span></span><button disabled="" style="padding: 4px 10px; background: rgb(40, 167, 69); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700;">✅ 승인</button><button disabled="" style="padding: 4px 10px; background: rgb(220, 53, 69); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700;">❌ 거부</button></div><div style="display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px;"><span style="flex:1"><b>테스트</b> <span style="color:#888">(test123)</span></span><button style="padding: 4px 10px; background: rgb(40, 167, 69); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700;">✅ 승인</button><button style="padding: 4px 10px; background: rgb(220, 53, 69); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700;">❌ 거부</button></div></div>
+        <div id="adm-pending-users" style="max-height:300px;overflow-y:auto;border:1px solid #eee;border-radius:8px;padding:4px"><div style="display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px; opacity: 0.4;"><span style="flex:1"><b>우딘</b> <span style="color:#888">(우딘)</span></span><button disabled="" style="padding: 4px 10px; background: rgb(40, 167, 69); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700;">✅ 승인</button><button disabled="" style="padding: 4px 10px; background: rgb(220, 53, 69); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700;">❌ 거부</button></div><div style="display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px;"><span style="flex:1"><b>테스트</b> <span style="color:#888">(test123)</span></span><button style="padding: 4px 10px; background: rgb(40, 167, 69); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700;">✅ 승인</button><button style="padding: 4px 10px; background: rgb(220, 53, 69); color: rgb(255, 255, 255); border-width: medium; border-style: none; border-color: currentcolor; border-image: initial; border-radius: 6px; cursor: pointer; font-size: 11px; font-weight: 700;">❌ 거부</button></div></div>
         <div style="font-size:11px;color:#90a4ae;margin-top:6px">* 신청 목록은 GitHub Issues에서 가져옵니다. 새로고침 버튼을 눌러주세요.</div>
         <button onclick="admLoadPendingUsers()" style="margin-top:8px;padding:7px 16px;background:#f0f4ff;border:1px solid #c5d0e8;border-radius:8px;font-size:12px;color:#1a4fa0;cursor:pointer">🔄 신청 목록 새로고침</button>
       </div>
       <div class="adm-sec" style="margin-top:12px">
         <div style="font-size:13px;font-weight:700;color:#333;margin-bottom:10px">✅ 승인된 사용자</div>
-        <div id="adm-approved-users" style="max-height:360px;overflow-y:auto"><div style="display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px;"><span style="flex:1"><b>테스트1234</b> <span style="color:#888">(1234)</span></span><button style="padding: 4px 10px; background: rgb(255, 255, 255); border: 1px solid rgb(255, 204, 204); border-radius: 6px; cursor: pointer; font-size: 11px; color: rgb(204, 51, 51);">🗑 삭제</button></div></div>
+        <div id="adm-approved-users" style="max-height:360px;overflow-y:auto"><div style="display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px;"><span style="flex:1"><b>테스트1234</b> <span style="color:#888">(1234)</span></span><button style="padding: 4px 10px; background: rgb(255, 255, 255); border: 1px solid rgb(255, 204, 204); border-radius: 6px; cursor: pointer; font-size: 11px; color: rgb(204, 51, 51);">🗑 삭제</button></div><div style="display: flex; align-items: center; gap: 6px; padding: 8px 10px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px;"><span style="flex:1"><b>우딘</b> <span style="color:#888">(우딘)</span></span><button style="padding: 4px 10px; background: rgb(255, 255, 255); border: 1px solid rgb(255, 204, 204); border-radius: 6px; cursor: pointer; font-size: 11px; color: rgb(204, 51, 51);">🗑 삭제</button></div></div>
         <button onclick="admAddUserManual()" style="margin-top:8px;padding:7px 16px;background:#f0f4ff;border:1px solid #c5d0e8;border-radius:8px;font-size:12px;color:#1a4fa0;cursor:pointer">➕ 직접 추가</button>
       </div>
       <div style="margin-top:16px;display:flex;gap:8px">
@@ -703,7 +701,13 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
         <div style="font-size:13px;font-weight:700;color:#333;margin-bottom:6px">📋 제품 추가·개선 요청 목록</div>
         <div style="font-size:11px;color:#90a4ae;margin-bottom:10px">사용자가 제출한 문의를 GitHub Issues에서 가져옵니다.</div>
         <button onclick="admLoadInquiries()" style="margin-bottom:10px;padding:7px 16px;background:#f0f4ff;border:1px solid #c5d0e8;border-radius:8px;font-size:12px;color:#1a4fa0;cursor:pointer">🔄 새로고침</button>
-        <div id="adm-inquiry-list" style="max-height:580px;overflow-y:auto;border:1px solid #eee;border-radius:8px;padding:4px"><div style="padding:20px;text-align:center;color:#bbb;font-size:12px">접수된 문의가 없습니다</div></div>
+        <div id="adm-inquiry-list" style="max-height:580px;overflow-y:auto;border:1px solid #eee;border-radius:8px;padding:4px"><div style="padding: 12px 14px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-weight:700;color:#333">테스트1234</span><span style="color:#bbb;font-size:10px">2026. 6. 23. 오전 11:37:56</span><button onclick="admCloseInquiry(8,this)" style="margin-left:auto;padding:3px 10px;background:#eee;border:none;border-radius:6px;font-size:11px;cursor:pointer;color:#555">✅ 처리완료</button></div><div style="color:#555;white-space:pre-wrap;line-height:1.6">.</div></div><div style="padding: 12px 14px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-weight:700;color:#333">테스트1234</span><span style="color:#bbb;font-size:10px">2026. 6. 23. 오전 11:34:31</span><button onclick="admCloseInquiry(7,this)" style="margin-left:auto;padding:3px 10px;background:#eee;border:none;border-radius:6px;font-size:11px;cursor:pointer;color:#555">✅ 처리완료</button></div><div style="color:#555;white-space:pre-wrap;line-height:1.6">품목정리 필요
+같은 품목 다른색상일 경우 재퓸설명에 운영칼라명을 넣는게 깔끔하고 보기편해요
+예/ 오목이 sh09 색상별분리가아닌 이미지에 운영칼라명 : 실버 브론즈 블랙</div></div><div style="padding: 12px 14px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-weight:700;color:#333">테스트1234</span><span style="color:#bbb;font-size:10px">2026. 6. 23. 오전 11:34:29</span><button onclick="admCloseInquiry(6,this)" style="margin-left:auto;padding:3px 10px;background:#eee;border:none;border-radius:6px;font-size:11px;cursor:pointer;color:#555">✅ 처리완료</button></div><div style="color:#555;white-space:pre-wrap;line-height:1.6">품목정리 필요
+같은 품목 다른색상일 경우 재퓸설명에 운영칼라명을 넣는게 깔끔하고 보기편해요
+예/ 오목이 sh09 색상별분리가아닌 이미지에 운영칼라명 : 실버 브론즈 블랙</div></div><div style="padding: 12px 14px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-weight:700;color:#333">테스트1234</span><span style="color:#bbb;font-size:10px">2026. 6. 23. 오전 11:34:27</span><button onclick="admCloseInquiry(5,this)" style="margin-left:auto;padding:3px 10px;background:#eee;border:none;border-radius:6px;font-size:11px;cursor:pointer;color:#555">✅ 처리완료</button></div><div style="color:#555;white-space:pre-wrap;line-height:1.6">품목정리 필요
+같은 품목 다른색상일 경우 재퓸설명에 운영칼라명을 넣는게 깔끔하고 보기편해요
+예/ 오목이 sh09 색상별분리가아닌 이미지에 운영칼라명 : 실버 브론즈 블랙</div></div><div style="padding: 12px 14px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-weight:700;color:#333">없음</span><span style="color:#bbb;font-size:10px">2026. 6. 23. 오전 11:16:49</span><button onclick="admCloseInquiry(4,this)" style="margin-left:auto;padding:3px 10px;background:#eee;border:none;border-radius:6px;font-size:11px;cursor:pointer;color:#555">✅ 처리완료</button></div><div style="color:#555;white-space:pre-wrap;line-height:1.6">개선 요청시 이름 및 대리점명 변경 가능 기능삭제 요청</div></div><div style="padding: 12px 14px; border-bottom: 1px solid rgb(240, 240, 240); font-size: 12px;"><div style="display:flex;align-items:center;gap:6px;margin-bottom:6px"><span style="font-weight:700;color:#333">테스트1234</span><span style="color:#bbb;font-size:10px">2026. 6. 23. 오전 11:06:33</span><button onclick="admCloseInquiry(3,this)" style="margin-left:auto;padding:3px 10px;background:#eee;border:none;border-radius:6px;font-size:11px;cursor:pointer;color:#555">✅ 처리완료</button></div><div style="color:#555;white-space:pre-wrap;line-height:1.6">해줘</div></div></div>
       </div>
       <div class="adm-foot">
         <button class="adm-close-btn" onclick="admClosePanel()">닫기</button>
@@ -960,9 +964,6 @@ var GH_DEFAULT={owner:'kpslove5307',repo:'woodin',path:'chatbot.html'};
 // 공용 Issues 전송용 토큰 (가입신청/문의 전용)
 var GH_ISSUE_TOKEN=(function(){var a='github_pat_11CFYZRSY0lilS1pK7P';var b='Pyy_kJSVeQSxuN5JZTzaJz4qQMT3kCHhHO1zP4lz5yuA7ezKGKMAQRSaLbMA5NB';return a+b;})();
 
-// Groq AI 키 (무료 AI 답변용)
-var GROQ_KEY=(function(){var a='gsk_mchbyfLCkk3biXV0UbNWWGdyb3';var b='FYEon5g6jwnr5daBQFfVrubzRX';return a+b;})();
-
 // 가입신청/문의용 config (토큰 없어도 동작)
 function getIssueConfig(){
   var cfg=admGhLoadConfig();
@@ -1215,7 +1216,7 @@ function admBtnClick(){
 }
 var ADM_PW='dnels1122';
 // 승인된 사용자 목록 [{id, name, pw, approved}]
-var ADM_USERS=[{"id":"1234","name":"테스트1234","pw":"1234"}];
+var ADM_USERS=[{"id":"1234","name":"테스트1234","pw":"1234"},{"id":"우딘","name":"우딘","pw":"1234"}];
 var admPending={real:[],draw:[],desc:[],newReal:[],newDraw:[],newDesc:[]};
 var ADM_CATS=["실린더","포인트몰딩","오목이","PVC몰딩","인조대리석","리빙보드","힐링월","힐링월몰딩","모티스","하드웨어","행거","경첩","슬라이딩락","핸들"];
 
@@ -2100,8 +2101,8 @@ async function sideInquirySubmit(){
   err.style.display='none'; okEl.style.display='none';
   if(!content){err.textContent='내용을 입력하세요.';err.style.display='block';return;}
   var cfg = getIssueConfig();
-  var btn = document.getElementById('side-submit-btn');
-  if(btn){btn.disabled=true; btn.textContent='제출 중...';}
+  var btn = document.querySelector('#side-panel button');
+  btn.disabled=true; btn.textContent='제출 중...';
   try{
     var res = await fetch('https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/issues',{
       method:'POST',
@@ -2123,7 +2124,7 @@ async function sideInquirySubmit(){
   }catch(e){
     err.textContent='네트워크 오류: '+e.message;err.style.display='block';
   }
-  if(btn){btn.disabled=false; btn.textContent='제출하기';}
+  btn.disabled=false; btn.textContent='제출하기';
 }
 
 /* ══ 문의(제품추가·개선요청) 기능 ══════════════════════════════ */
@@ -2509,6 +2510,12 @@ function respond(q){
 
 /* ── AI 상세설명 답변 ── */
 async function askAI(q, products){
+  var apiKey=localStorage.getItem('woodin_anthropic_key')||'';
+  if(!apiKey){
+    if(products.length===1){showProductCard(products[0]);}
+    else{addBot('<b>🔍 "'+q+'" 관련 제품 ('+products.length+'개)</b><br><small style="color:#90a4ae">원하는 제품을 선택하세요</small>',products);}
+    return;
+  }
   var msgsEl=document.getElementById('msgs');
   var loadEl=document.createElement('div');
   loadEl.className='mw b';
@@ -2524,25 +2531,23 @@ async function askAI(q, products){
     return lines.join(' | ');
   }).join(' / / / ');
   try{
-    var res=await fetch('https://api.groq.com/openai/v1/chat/completions',{
+    var res=await fetch('https://api.anthropic.com/v1/messages',{
       method:'POST',
-      headers:{'Content-Type':'application/json','Authorization':'Bearer '+GROQ_KEY},
+      headers:{'Content-Type':'application/json','x-api-key':apiKey,'anthropic-version':'2023-06-01','anthropic-dangerous-direct-browser-access':'true'},
       body:JSON.stringify({
-        model:'llama-3.1-8b-instant',
+        model:'claude-haiku-4-5-20251001',
         max_tokens:500,
-        messages:[
-          {role:'system',content:'당신은 우딘 하드웨어 제품 안내 챗봇입니다. 제공된 제품 정보와 상세설명을 바탕으로 사용자 질문에 간결하고 정확하게 한국어로 답변하세요. 제품 정보에 없는 내용은 "상세설명에 나와있지 않습니다"라고 답하세요.'},
-          {role:'user',content:'제품정보: '+context+' | 질문: '+q}
-        ]
+        system:'당신은 우딘 하드웨어 제품 안내 챗봇입니다. 제공된 제품 정보와 상세설명을 바탕으로 사용자 질문에 간결하고 정확하게 한국어로 답변하세요. 제품 정보에 없는 내용은 "상세설명에 나와있지 않습니다"라고 답하세요.',
+        messages:[{role:'user',content:'제품정보: '+context+' | 질문: '+q}]
       })
     });
     var data=await res.json();
     msgsEl.removeChild(loadEl);
-    var answer=(data.choices&&data.choices[0]&&data.choices[0].message&&data.choices[0].message.content)||'답변을 가져오지 못했어요.';
+    var answer=(data.content&&data.content[0]&&data.content[0].text)||'답변을 가져오지 못했어요.';
     addBot('<b>🤖 AI 답변</b><br><br>'+answer.replace(/\n/g,'<br>')+'<br><br><small style="color:#90a4ae">📦 관련 제품</small>',products);
   }catch(e){
     msgsEl.removeChild(loadEl);
-    if(products.length===1){showProductCard(products[0]);}
+    if(products.length===1){addBot(null,[],buildCard(products[0]));}
     else{addBot('<b>🔍 "'+q+'" 관련 제품 ('+products.length+'개)</b>',products);}
   }
 }

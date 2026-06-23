@@ -2285,9 +2285,23 @@ async function admLoadInquiries(){
       });
       var replyId='reply-'+issue.number;
       var card=document.createElement('div');
-      card.style.cssText='padding:12px 14px;border-bottom:1px solid #f0f0f0;font-size:12px';
+      card.style.cssText='padding:12px 14px;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;gap:10px;align-items:flex-start';
+      card.dataset.issueNum=issue.number;
+
+      // 체크박스
+      var chk=document.createElement('input');
+      chk.type='checkbox';
+      chk.className='inq-check';
+      chk.dataset.num=issue.number;
+      chk.style.cssText='margin-top:4px;cursor:pointer;width:16px;height:16px;flex-shrink:0';
+      chk.onchange=admUpdateCheckCount;
+      card.appendChild(chk);
+
+      // 내용 영역
       var replyHtml=existReply?'<div style="background:#f0f7ff;border-left:3px solid #1a4fa0;padding:8px 10px;border-radius:0 6px 6px 0;margin-bottom:8px;font-size:11px"><span style="color:#1a4fa0;font-weight:700">📣 관리자 답글</span><br><span style="color:#333;white-space:pre-wrap">'+existReply.text+'</span></div>':'';
-      card.innerHTML=
+      var body=document.createElement('div');
+      body.style.cssText='flex:1;min-width:0';
+      body.innerHTML=
         '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">'
         +'<span style="font-weight:700;color:#333">'+writer+'</span>'
         +'<span style="color:#bbb;font-size:10px">'+dateStr+'</span>'
@@ -2299,6 +2313,7 @@ async function admLoadInquiries(){
         +'<textarea id="'+replyId+'" placeholder="답글 입력..." rows="2" style="flex:1;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:12px;font-family:inherit;resize:vertical;outline:none">'+(existReply?existReply.text:'')+'</textarea>'
         +'<button onclick="admSaveReply('+issue.number+',\''+writer+'\',\''+replyId+'\',this)" style="padding:6px 12px;background:#1a4fa0;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-weight:700;align-self:flex-end">답글 저장</button>'
         +'</div>';
+      card.appendChild(body);
       el.appendChild(card);
     });
   }catch(e){

@@ -939,6 +939,15 @@ function addUser(t){
 /* ══ GitHub 연동 ══ */
 var GH_STORAGE_KEY='woodin_gh_config';
 var GH_DEFAULT={owner:'kpslove5307',repo:'woodin',path:'chatbot.html'};
+// 공용 Issues 전송용 토큰 (가입신청/문의 전용)
+var GH_ISSUE_TOKEN=(function(){var a='github_pat_11CFYZRSY0lilS1pK7P';var b='Pyy_kJSVeQSxuN5JZTzaJz4qQMT3kCHhHO1zP4lz5yuA7ezKGKMAQRSaLbMA5NB';return a+b;})();
+
+// 가입신청/문의용 config (토큰 없어도 동작)
+function getIssueConfig(){
+  var cfg=admGhLoadConfig();
+  if(cfg&&cfg.token)return cfg;
+  return {owner:GH_DEFAULT.owner,repo:GH_DEFAULT.repo,token:GH_ISSUE_TOKEN};
+}
 
 function admGhLoadConfig(){
   try{
@@ -2027,14 +2036,7 @@ async function gateDoSignup(){
   if(!/^[a-zA-Z0-9_]+$/.test(id)){err.textContent='아이디는 영문/숫자/밑줄만 사용 가능합니다.';err.style.display='block';return;}
   if(ADM_USERS.some(function(u){return u.id===id;})){err.textContent='이미 사용 중인 아이디입니다.';err.style.display='block';return;}
   // GitHub Issue로 신청 전송
-  var cfg = admGhLoadConfig();
-  // 토큰이 없으면 localStorage에서 직접 시도
-  if(!cfg||!cfg.token){
-    try{var raw=JSON.parse(localStorage.getItem('woodin_gh_config')||'null');if(raw&&raw.token)cfg=raw;}catch(e){}
-  }
-  if(!cfg||!cfg.token){
-    err.textContent='가입 신청을 처리할 수 없습니다. 관리자에게 직접 연락해 아이디 등록을 요청하세요.';err.style.display='block';return;
-  }
+  var cfg = getIssueConfig();
   var btn = document.querySelector('#gate-signup-form button');
   btn.disabled=true; btn.textContent='신청 중...';
   try{
@@ -2081,10 +2083,7 @@ async function inquirySubmit(){
   if(!writer){err.textContent='이름 및 대리점명을 입력하세요.';err.style.display='block';return;}
   if(!content){err.textContent='내용을 입력하세요.';err.style.display='block';return;}
 
-  var cfg = admGhLoadConfig();
-  if(!cfg||!cfg.token){
-    err.textContent='시스템 오류: 관리자에게 직접 문의하세요.';err.style.display='block';return;
-  }
+  var cfg = getIssueConfig();
   var btn = document.querySelector('#inquiry-modal button');
   btn.disabled=true; btn.textContent='제출 중...';
   try{

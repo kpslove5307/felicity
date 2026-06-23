@@ -1781,7 +1781,10 @@ function getProductText(k){
   if(p.cat)parts.push(p.cat);
   if(p.info)p.info.forEach(function(row){parts.push(row[0]);parts.push(row[1]);});
   if(p.descText)parts.push(p.descText);
-  return parts.join(' ').toLowerCase();
+  var normal=parts.join(' ').toLowerCase();
+  // 띄어쓰기 제거 버전도 포함 (붙여쓰기 검색 대응)
+  var nospace=normal.replace(/\s/g,'');
+  return normal+' '+nospace;
 }
 
 // 쿼리를 의미 단위로 분리 (공백 + 숫자/한글 경계 분리)
@@ -1818,6 +1821,9 @@ function countSemanticWords(q){
 function smartSearch(q){
   var words=tokenize(q);
   if(!words.length)return[];
+  // 붙여쓰기 쿼리 자체도 토큰으로 추가 (전체를 공백 없이 붙인 것)
+  var qNospace=q.trim().toLowerCase().replace(/\s/g,'');
+  if(qNospace&&words.indexOf(qNospace)===-1)words.push(qNospace);
   var scored=[];
   Object.keys(DB).forEach(function(k){
     var txt=getProductText(k);
@@ -1838,13 +1844,15 @@ function respond(q){
       addBot(null,[],buildCard(ks[i]));return;
     }
   }
-  // 카테고리 정확 매칭
-  if(ADM_CATS.indexOf(q)!==-1){
-    var catProducts=Object.keys(DB).filter(function(k){return DB[k].cat===q;});
+  // 카테고리 매칭 (띄어쓰기 무시)
+  var matchedCat=ADM_CATS.filter(function(cat){return cat.replace(/\s/g,'')===ql;})[0]||
+                 (ADM_CATS.indexOf(q)!==-1?q:null);
+  if(matchedCat){
+    var catProducts=Object.keys(DB).filter(function(k){return DB[k].cat===matchedCat;});
     if(catProducts.length>0){
-      addBot('<b>📂 '+q+'</b> ('+catProducts.length+'개 제품)',catProducts);
+      addBot('<b>📂 '+matchedCat+'</b> ('+catProducts.length+'개 제품)',catProducts);
     } else {
-      addBot('<b>📂 '+q+'</b> — 등록된 제품이 없습니다.',ADM_CATS);
+      addBot('<b>📂 '+matchedCat+'</b> — 등록된 제품이 없습니다.',ADM_CATS);
     }
     return;
   }

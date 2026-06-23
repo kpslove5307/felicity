@@ -296,7 +296,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
       <button onclick="userOpenChpw()" style="font-size:11px;padding:4px 8px;background:#f0f4ff;border:1px solid #c5d0e8;border-radius:12px;color:#1a4fa0;cursor:pointer">🔑 비번변경</button>
       <button onclick="userLogout()" style="font-size:11px;padding:4px 8px;background:#fff0f0;border:1px solid #fcc;border-radius:12px;color:#c33;cursor:pointer">로그아웃</button>
     </div>
-    <button id="adm-btn" onclick="admOpenLogin()">⚙ 관리자</button>
+    <button id="adm-btn" onclick="admBtnClick()">⚙ 관리자</button>
   </div>
 
 <!-- 사용자 비밀번호 변경 모달 -->
@@ -1204,6 +1204,12 @@ function admAddProductAndPush(){
 }
 
 /* ══ 관리자 모드 ══ */
+var IS_ADMIN = false; // 관리자 로그인 여부
+
+function admBtnClick(){
+  if(IS_ADMIN){ admOpenPanel(); }
+  else{ admOpenLogin(); }
+}
 var ADM_PW='dnels1122';
 // 승인된 사용자 목록 [{id, name, pw, approved}]
 var ADM_USERS=[{"id":"1234","name":"테스트1234","pw":"1234"}];
@@ -1221,7 +1227,7 @@ function admCloseLogin(){
 }
 function admCheckPw(){
   var v=document.getElementById('adm-pw-input').value;
-  if(v===ADM_PW){admCloseLogin();admOpenPanel();}
+  if(v===ADM_PW){IS_ADMIN=true;admCloseLogin();admOpenPanel();}
   else{
     document.getElementById('adm-err').style.display='block';
     document.getElementById('adm-pw-input').value='';
@@ -2023,7 +2029,8 @@ function gateDoAdminLogin(){
   var pw = document.getElementById('gate-adm-pw').value;
   var err = document.getElementById('gate-adm-err');
   if(pw !== ADM_PW){err.textContent='비밀번호가 올바르지 않습니다.';err.style.display='block';return;}
-  // 관리자 로그인 성공 → 게이트 닫고 관리자 패널 열기
+  // 관리자 로그인 성공 → IS_ADMIN 설정 후 게이트 닫고 패널 열기
+  IS_ADMIN=true;
   document.getElementById('user-gate').style.display='none';
   admOpenPanel();
 }

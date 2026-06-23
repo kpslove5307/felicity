@@ -1179,7 +1179,7 @@ function admGetCurrentHTML(){
 
   // 사용자 목록 반영
   // ADM_USERS 반영 - MARKER 방식
-  var usS='/*USERS_START*/[{"id":"1234","name":"테스트1234","pw":"1234"},{"id":"우딘","name":"우딘","pw":"1234","replies":[{"issueNum":13,"text":"시러","date":"2026. 6. 23."}]}]/*USERS_END*/';
+  var usS='/*USERS_START*/';var usE='/*USERS_END*/';
   var usSi=html.indexOf(usS);var usEi=html.indexOf(usE);
   if(usSi!==-1&&usEi!==-1){
     html=html.substring(0,usSi)+usS+JSON.stringify(ADM_USERS)+usE+html.substring(usEi+usE.length);
@@ -2539,7 +2539,12 @@ async function loadMyInquiries(){
     // 내 이름으로 된 [문의] 이슈만 필터
     var myName=CURRENT_USER.name||CURRENT_USER.id;
     var mine=all.filter(function(i){
-      return i.title&&i.title.indexOf('[문의]')===0&&i.title.indexOf(myName)!==-1;
+      if(!i.title)return false;
+      var t=i.title;
+      // [문의] 또는 [삭제됨] [문의] 포함, 내 이름 포함, 단 [삭제됨]은 제외
+      return (t.indexOf('[문의]')===0||t.indexOf('[삭제됨] [문의]')===0)
+        &&t.indexOf(myName)!==-1
+        &&t.indexOf('[삭제됨]')===-1;
     });
     renderInquiries('user-replies-box','user-replies-section',mine);
     renderInquiries('modal-replies-box','modal-replies-section',mine);

@@ -750,6 +750,10 @@ function gi(f){
 
 /* ══ 제품 DB ══ */
 </script>
+<script id="pw-script">
+var ADM_PW=/*PW_START*/"woodin2026"/*PW_END*/;
+</script>
+
 <script id="notice-script">
 var ADM_NOTICE=/*NOTICE_START*/"안녕하세요. 👋<br><br><b>하드웨어 챗봇</b>입니다.<br><br>본 챗봇은 Q&amp;A 방식이 아닌 제품 검색 시 나오는 <b>이미지와 도면 상세설명 페이지</b>의 내용을 확인하는 용도이며,<br>상세설명 페이지의 내용 중 수정이 필요하거나 궁금했던 내용의 답이 없을 시 관리자에게 연락주시면 확인 후 실시간 업데이트 됩니다.<br><br><b>* 검색방법</b><br>1. 안내 메시지 아래 전체 카테고리에서 필요한 제품 클릭 (마우스 클릭으로만 검색)<br>2. 제품명을 하단 검색란에 예) 실린더p-51 -&gt; 숫자 51만 검색하여도 검색어 자동완성으로 검색 가능<br>3. 간단한 질문으로 검색 가능 예) <i>45t도어 사용가능 실린더 </i>, <i>인조대리석 납기</i> 등"/*NOTICE_END*/;
 </script>
@@ -1053,8 +1057,12 @@ function admGetCurrentHTML(){
     }
   }catch(e){console.error('DB 직렬화 오류:',e);}
 
-  // 비밀번호 반영
-  html=html.replace(/var ADM_PW='[^']*';/,'var ADM_PW=\''+ADM_PW.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"';");
+  // 비밀번호 반영 (pw-script 태그의 PW_START~PW_END 사이만 교체)
+  var pwS='/*PW_START*/';var pwE='/*PW_END*/';
+  var pwSi=html.indexOf(pwS);var pwEi=html.indexOf(pwE);
+  if(pwSi!==-1&&pwEi!==-1){
+    html=html.substring(0,pwSi)+pwS+JSON.stringify(ADM_PW)+pwE+html.substring(pwEi+pwE.length);
+  }
 
   // 사용자 목록 반영
   html=html.replace(/var ADM_USERS=\[[^\]]*\];/,'var ADM_USERS='+JSON.stringify(ADM_USERS)+';');
@@ -1185,7 +1193,6 @@ function admAddProductAndPush(){
 }
 
 /* ══ 관리자 모드 ══ */
-var ADM_PW='woodin2026';
 // 승인된 사용자 목록 [{id, name, pw, approved}]
 var ADM_USERS=[];
 var admPending={real:[],draw:[],desc:[],newReal:[],newDraw:[],newDesc:[]};

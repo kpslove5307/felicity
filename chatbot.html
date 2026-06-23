@@ -5,7 +5,9 @@
 <style>
 :root{--p:#1a4fa0;--pd:#0d3578;--pl:#e8f0fe;--bg:#eef1f6;--w:#fff;--tx:#1a1f2e;--s:#5a6478;--b:#dde3ed}
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif}
-body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:16px}
+body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:16px;gap:16px}
+#side-panel{width:340px;flex-shrink:0;display:none;flex-direction:column;gap:0;align-self:flex-start;margin-top:0}
+@media(min-width:1100px){#side-panel{display:flex}}
 #app{width:100%;max-width:720px;background:var(--w);border-radius:22px;box-shadow:0 8px 40px rgba(26,79,160,.15);display:flex;flex-direction:column;height:98vh;overflow:hidden}
 #hdr{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;padding:13px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0}
 #hdr-ic{width:40px;height:40px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
@@ -88,8 +90,6 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
 #ii:focus{border-color:var(--p);background:#fff}
 #ii::placeholder{color:#a0aec0}
 #sb{background:var(--p);color:#fff;border:none;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:17px;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:inherit}
-#iqb{background:#f0f4ff;color:#1a4fa0;border:1.5px solid #c5d0e8;border-radius:50%;width:40px;height:40px;cursor:pointer;font-size:16px;flex-shrink:0;transition:background .15s}
-#iqb:hover{background:#dce6ff}
 #sb:hover{background:var(--pd)}
 #lb{display:none;position:fixed;top:0;left:0;width:100vw;height:100vh;background:rgba(0,0,0,.92);z-index:999999;align-items:center;justify-content:center;flex-direction:column}
 #lb.show{display:flex}
@@ -261,6 +261,33 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
     <button onclick="lbZoom(0.3)">＋</button>
   </div>
 </div>
+<!-- 왼쪽 사이드 패널 (PC 전용) -->
+<div id="side-panel">
+  <div style="background:#fff;border-radius:22px;box-shadow:0 8px 40px rgba(26,79,160,.15);overflow:hidden;display:flex;flex-direction:column">
+    <!-- 헤더 -->
+    <div style="background:linear-gradient(135deg,#1a4fa0,#1565c0);color:#fff;padding:16px 18px">
+      <div style="font-size:14px;font-weight:700;margin-bottom:4px">✏️ 제품 추가 · 개선 요청</div>
+      <div style="font-size:11px;opacity:0.85;line-height:1.6">하드웨어 중 추가를 원하는 제품이나<br>개선을 바라는 점을 적어 주시면<br>관리자가 확인 후 피드백 드립니다.</div>
+    </div>
+    <!-- 폼 -->
+    <div style="padding:16px;display:flex;flex-direction:column;gap:10px">
+      <input id="side-writer" type="text" placeholder="이름 및 대리점명"
+        style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #e0e7f0;border-radius:10px;font-size:13px;outline:none;font-family:inherit"
+        onfocus="this.style.borderColor='#1a4fa0'" onblur="this.style.borderColor='#e0e7f0'">
+      <textarea id="side-content" placeholder="내용을 입력하세요&#10;예) P-01 블루 컬러 추가 요청&#10;예) 실린더 규격표 상세설명 추가 요청" rows="6"
+        style="width:100%;box-sizing:border-box;padding:9px 12px;border:1.5px solid #e0e7f0;border-radius:10px;font-size:13px;resize:vertical;font-family:inherit;outline:none;line-height:1.6"
+        onfocus="this.style.borderColor='#1a4fa0'" onblur="this.style.borderColor='#e0e7f0'"></textarea>
+      <div id="side-err" style="display:none;color:#c33;font-size:12px;text-align:center"></div>
+      <button onclick="sideInquirySubmit()"
+        style="width:100%;padding:11px;background:#1a4fa0;color:#fff;border:none;border-radius:10px;font-size:13px;font-weight:700;cursor:pointer;transition:background .15s"
+        onmouseover="this.style.background='#1565c0'" onmouseout="this.style.background='#1a4fa0'">제출하기</button>
+      <div id="side-ok" style="display:none;text-align:center;padding:10px;background:#f0fff4;border-radius:10px;color:#27ae60;font-size:13px;font-weight:600">
+        ✅ 접수되었습니다!<br><span style="font-weight:400;font-size:11px;color:#555">관리자가 확인 후 피드백 드립니다.</span>
+      </div>
+    </div>
+  </div>
+</div>
+
 <div id="app">
   <div id="hdr">
     <div id="hdr-ic" style="background:transparent;border:none;padding:0"><img src="data:image/png;base64,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" style="height:38px;width:auto;display:block" alt="우딘 로고"></div>
@@ -708,7 +735,6 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
     <div id="ac" class=""></div>
     <input id="ii" type="text" placeholder="🔍 제품명을 입력하세요 (예: 대칭, 40, 커브...)">
     <button id="sb">➤</button>
-    <button id="iqb" onclick="inquiryOpen()" title="제품 추가·개선 요청">✏️</button>
   </div>
 </div>
 <script>
@@ -1931,6 +1957,9 @@ function gateShowUserInfo(){
     nm.textContent = CURRENT_USER.name || CURRENT_USER.id;
     el.style.display='flex';
   }
+  // 사이드 패널 이름 자동입력
+  var sw = document.getElementById('side-writer');
+  if(sw && CURRENT_USER && CURRENT_USER.name) sw.value = CURRENT_USER.name;
 }
 
 function userOpenChpw(){
@@ -2053,6 +2082,42 @@ async function gateDoSignup(){
     err.textContent='네트워크 오류: '+e.message;err.style.display='block';
   }
   btn.disabled=false; btn.textContent='가입 신청하기';
+}
+
+/* ══ 사이드 패널 문의 제출 ══ */
+async function sideInquirySubmit(){
+  var writer  = (document.getElementById('side-writer').value||'').trim();
+  var content = (document.getElementById('side-content').value||'').trim();
+  var err     = document.getElementById('side-err');
+  var okEl    = document.getElementById('side-ok');
+  err.style.display='none'; okEl.style.display='none';
+  if(!writer){err.textContent='이름 및 대리점명을 입력하세요.';err.style.display='block';return;}
+  if(!content){err.textContent='내용을 입력하세요.';err.style.display='block';return;}
+  var cfg = getIssueConfig();
+  var btn = document.querySelector('#side-panel button');
+  btn.disabled=true; btn.textContent='제출 중...';
+  try{
+    var res = await fetch('https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/issues',{
+      method:'POST',
+      headers:{'Authorization':'token '+cfg.token,'Content-Type':'application/json','Accept':'application/vnd.github.v3+json'},
+      body:JSON.stringify({
+        title:'[문의] '+writer,
+        body:'작성자: '+writer+'\n\n'+content+'\n\n접수일시: '+new Date().toLocaleString('ko-KR')
+      })
+    });
+    if(res.ok){
+      document.getElementById('side-writer').value='';
+      document.getElementById('side-content').value='';
+      okEl.style.display='block';
+      setTimeout(function(){okEl.style.display='none';},4000);
+    } else {
+      var j=await res.json();
+      err.textContent='전송 실패: '+(j.message||'오류');err.style.display='block';
+    }
+  }catch(e){
+    err.textContent='네트워크 오류: '+e.message;err.style.display='block';
+  }
+  btn.disabled=false; btn.textContent='제출하기';
 }
 
 /* ══ 문의(제품추가·개선요청) 기능 ══════════════════════════════ */

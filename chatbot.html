@@ -217,6 +217,20 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
         <span style="font-size:12px;color:#90a4ae">계정이 없으신가요? </span>
         <button onclick="gateShowSignup()" style="background:none;border:none;color:#1a4fa0;font-size:12px;font-weight:600;cursor:pointer;text-decoration:underline">가입 신청</button>
       </div>
+      <div style="border-top:1px solid #f0f0f0;margin-top:16px;padding-top:14px;text-align:center">
+        <button onclick="gateShowAdminLogin()" style="background:none;border:none;color:#aaa;font-size:11px;cursor:pointer">⚙ 관리자 로그인</button>
+      </div>
+    </div>
+    <!-- 관리자 로그인 폼 -->
+    <div id="gate-admin-form" style="display:none">
+      <div style="text-align:center;margin-bottom:14px;font-size:13px;color:#555;font-weight:600">⚙ 관리자 로그인</div>
+      <input id="gate-adm-pw" type="password" placeholder="관리자 비밀번호"
+        style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd;border-radius:8px;font-size:14px;margin-bottom:12px;outline:none">
+      <div id="gate-adm-err" style="display:none;color:#c33;font-size:12px;margin-bottom:10px;text-align:center"></div>
+      <button onclick="gateDoAdminLogin()" style="width:100%;padding:11px;background:#333;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer">관리자 입장</button>
+      <div style="text-align:center;margin-top:12px">
+        <button onclick="gateShowLogin()" style="background:none;border:none;color:#90a4ae;font-size:12px;cursor:pointer;text-decoration:underline">← 일반 로그인으로</button>
+      </div>
     </div>
     <!-- 가입 신청 폼 -->
     <div id="gate-signup-form" style="display:none">
@@ -1927,13 +1941,32 @@ function gateShowLogin(){
   document.getElementById('gate-login-form').style.display='block';
   document.getElementById('gate-signup-form').style.display='none';
   document.getElementById('gate-pending-form').style.display='none';
+  document.getElementById('gate-admin-form').style.display='none';
   document.getElementById('gate-login-err').style.display='none';
 }
 function gateShowSignup(){
   document.getElementById('gate-login-form').style.display='none';
   document.getElementById('gate-signup-form').style.display='block';
   document.getElementById('gate-pending-form').style.display='none';
+  document.getElementById('gate-admin-form').style.display='none';
   document.getElementById('gate-signup-err').style.display='none';
+}
+function gateShowAdminLogin(){
+  document.getElementById('gate-login-form').style.display='none';
+  document.getElementById('gate-signup-form').style.display='none';
+  document.getElementById('gate-pending-form').style.display='none';
+  document.getElementById('gate-admin-form').style.display='block';
+  document.getElementById('gate-adm-err').style.display='none';
+  document.getElementById('gate-adm-pw').value='';
+  setTimeout(function(){document.getElementById('gate-adm-pw').focus();},100);
+}
+function gateDoAdminLogin(){
+  var pw = document.getElementById('gate-adm-pw').value;
+  var err = document.getElementById('gate-adm-err');
+  if(pw !== ADM_PW){err.textContent='비밀번호가 올바르지 않습니다.';err.style.display='block';return;}
+  // 관리자 로그인 성공 → 게이트 닫고 관리자 패널 열기
+  document.getElementById('user-gate').style.display='none';
+  admOpenPanel();
 }
 function gateShowPending(name, id){
   document.getElementById('gate-login-form').style.display='none';
@@ -2299,6 +2332,7 @@ document.getElementById('sb').addEventListener('click',function(){handleInput(ii
 // 로그인 폼 Enter 키
 document.getElementById('gate-pw').addEventListener('keydown',function(e){if(e.key==='Enter')gateDoLogin();});
 document.getElementById('gate-id').addEventListener('keydown',function(e){if(e.key==='Enter')gateDoLogin();});
+document.getElementById('gate-adm-pw').addEventListener('keydown',function(e){if(e.key==='Enter')gateDoAdminLogin();});
 ii.addEventListener('keydown',function(e){if(e.key==='Enter')handleInput(ii.value);});
 
 gateInit();

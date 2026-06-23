@@ -454,6 +454,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
       <button class="adm-tab" id="adm-tab-notice" onclick="admSwitchTab('notice')">📢 안내메시지</button>
       <button class="adm-tab" id="adm-tab-users" onclick="admSwitchTab('users')">👥 사용자</button>
       <button class="adm-tab on" id="adm-tab-inquiry" onclick="admSwitchTab('inquiry')">📋 문의</button>
+      <button class="adm-tab" id="adm-tab-popup" onclick="admSwitchTab('popup')">📣 공지</button>
     </div>
 
     <!-- 탭1: 기존 제품 편집 -->
@@ -785,6 +786,24 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
   </div>
 </div>
 
+<!-- 공지 팝업 -->
+<div id="notice-popup-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.55);z-index:99999;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;width:92%;max-width:480px;box-shadow:0 8px 40px rgba(0,0,0,0.25);overflow:hidden">
+    <div style="background:linear-gradient(135deg,#1a4fa0,#1565c0);padding:16px 20px;display:flex;align-items:center;justify-content:space-between">
+      <div style="font-size:15px;font-weight:700;color:#fff">📣 공지사항</div>
+      <button onclick="noticePopupClose()" style="background:none;border:none;color:#fff;font-size:22px;cursor:pointer;line-height:1;opacity:0.8">×</button>
+    </div>
+    <div id="notice-popup-body" style="padding:20px 22px;font-size:13px;color:#333;line-height:1.8;min-height:80px;max-height:400px;overflow-y:auto"></div>
+    <div style="padding:12px 20px;border-top:1px solid #f0f0f0;display:flex;align-items:center;justify-content:space-between;background:#fafafa">
+      <label style="display:flex;align-items:center;gap:7px;font-size:12px;color:#888;cursor:pointer">
+        <input type="checkbox" id="notice-today-hide" style="cursor:pointer">
+        오늘 하루 그만 보기
+      </label>
+      <button onclick="noticePopupClose()" style="padding:7px 20px;background:#1a4fa0;color:#fff;border:none;border-radius:8px;font-size:13px;font-weight:700;cursor:pointer">확인</button>
+    </div>
+  </div>
+</div>
+
 <!-- 문의 모달 -->
 <div id="inquiry-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99997;align-items:center;justify-content:center">
   <div style="background:#fff;border-radius:14px;padding:28px 26px;width:95%;max-width:600px;box-shadow:0 4px 24px rgba(0,0,0,0.18)">
@@ -807,6 +826,49 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
       </div>
       <div id="modal-replies-box" style="max-height:300px;overflow-y:auto"></div>
     </div>
+    <!-- 탭8: 공지 관리 -->
+    <div id="adm-popup-view" style="display:none;padding:0 2px 16px">
+      <div class="adm-sec">
+        <div style="font-size:13px;font-weight:700;color:#333;margin-bottom:12px">📣 공지사항 관리</div>
+
+        <!-- ON/OFF 토글 -->
+        <div style="display:flex;align-items:center;gap:12px;padding:12px 16px;background:#f8f9fc;border-radius:10px;margin-bottom:14px;border:1px solid #e8edf5">
+          <span style="font-size:13px;color:#333;font-weight:600">공지 표시</span>
+          <label style="position:relative;display:inline-block;width:46px;height:26px;margin-left:4px">
+            <input type="checkbox" id="popup-active-toggle" onchange="admPopupToggle()" style="opacity:0;width:0;height:0">
+            <span id="popup-toggle-slider" style="position:absolute;cursor:pointer;inset:0;background:#ccc;border-radius:26px;transition:.3s"></span>
+          </label>
+          <span id="popup-active-label" style="font-size:12px;color:#aaa">꺼짐</span>
+          <span style="font-size:11px;color:#90a4ae;margin-left:4px">· 켜면 접속 시 공지 팝업이 표시됩니다</span>
+        </div>
+
+        <!-- 편집기 -->
+        <div style="font-size:12px;font-weight:700;color:#555;margin-bottom:6px">공지 내용 편집</div>
+        <div style="display:flex;flex-wrap:wrap;gap:4px;padding:7px 8px;background:#f4f7fc;border:1px solid #dde3ed;border-bottom:none;border-radius:8px 8px 0 0;">
+          <select onchange="popupCmd('fontSize',this.value);this.selectedIndex=0;" style="padding:4px 6px;border:1px solid #ccc;border-radius:5px;font-size:12px;background:#fff;cursor:pointer;">
+            <option value="">크기</option><option value="1">아주 작게</option><option value="2">작게</option><option value="3">보통</option><option value="4">크게</option><option value="5">아주 크게</option>
+          </select>
+          <button onclick="popupCmd('bold')" style="width:30px;height:30px;border:1px solid #ccc;border-radius:5px;background:#fff;cursor:pointer;font-weight:700;font-size:14px;">B</button>
+          <button onclick="popupCmd('italic')" style="width:30px;height:30px;border:1px solid #ccc;border-radius:5px;background:#fff;cursor:pointer;font-style:italic;font-size:14px;">I</button>
+          <button onclick="popupCmd('underline')" style="width:30px;height:30px;border:1px solid #ccc;border-radius:5px;background:#fff;cursor:pointer;text-decoration:underline;font-size:13px;">U</button>
+          <label style="display:flex;align-items:center;gap:3px;border:1px solid #ccc;border-radius:5px;padding:0 6px;background:#fff;height:30px;font-size:11px;cursor:pointer;">색<input type="color" onchange="popupCmd('foreColor',this.value)" style="width:22px;height:18px;border:none;padding:0;cursor:pointer;"></label>
+          <button onclick="popupCmd('justifyCenter')" style="width:30px;height:30px;border:1px solid #ccc;border-radius:5px;background:#fff;cursor:pointer;">☰</button>
+          <button onclick="popupCmd('insertUnorderedList')" style="width:30px;height:30px;border:1px solid #ccc;border-radius:5px;background:#fff;cursor:pointer;">•≡</button>
+          <button onclick="popupNoticeReset()" style="padding:0 8px;height:30px;border:1px solid #ccc;border-radius:5px;background:#fff8f8;color:#e53935;cursor:pointer;font-size:12px;">↺ 초기화</button>
+        </div>
+        <div id="adm-popup-ed" contenteditable="true"
+          style="width:100%;box-sizing:border-box;min-height:150px;padding:14px 16px;border:1px solid #dde3ed;border-radius:0 0 8px 8px;font-size:13px;line-height:1.8;color:#1a1f2e;background:#fff;outline:none;font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif;"
+          onfocus="this.style.borderColor='var(--p)'" onblur="this.style.borderColor='#dde3ed'"></div>
+
+        <div style="margin-top:12px;display:flex;gap:8px;align-items:center">
+          <button onclick="admPopupSaveAndPush()" style="padding:8px 22px;background:#28a745;color:#fff;border:none;border-radius:7px;cursor:pointer;font-size:13px;font-weight:700;">💾🚀 저장 + GitHub 업로드</button>
+          <button onclick="admPreviewPopup()" style="padding:8px 16px;background:#f0f4ff;color:#1a4fa0;border:1px solid #c5d0e8;border-radius:7px;cursor:pointer;font-size:13px;">👁 미리보기</button>
+          <span id="adm-popup-msg" style="font-size:12px;color:#28a745;display:none;">✅ 저장되었습니다.</span>
+        </div>
+      </div>
+      <div class="adm-foot"><button class="adm-close-btn" onclick="admClosePanel()">닫기</button></div>
+    </div>
+
   </div>
 </div>
 
@@ -855,6 +917,10 @@ function gi(f){
 <script id="notice-script">
 var ADM_NOTICE=/*NOTICE_START*/"안녕하세요. 👋<br><br><b>하드웨어 챗봇</b>입니다.<br><br>본 챗봇은 Q&amp;A 방식이 아닌 제품 검색 시 나오는 <b>이미지와 도면 상세설명 페이지</b>의 내용을 확인하는 용도이며,<br>상세설명 페이지의 내용 중 수정이 필요하거나 궁금했던 내용의 답이 없을 시 관리자에게 연락주시면 확인 후 실시간 업데이트 됩니다.<br><br><b>* 검색방법</b><br>1. 안내 메시지 아래 전체 카테고리에서 필요한 제품 클릭 (마우스 클릭으로만 검색)<br>2. 제품명을 하단 검색란에 예) 실린더p-51 -&gt; 숫자 51만 검색하여도 검색어 자동완성으로 검색 가능<br>3. 간단한 질문으로 검색 가능 예) <i>45t도어 사용가능 실린더 </i>, <i>인조대리석 납기</i> 등"/*NOTICE_END*/;
 </script>
+<script id="notice-popup-script">
+var ADM_NOTICE_POPUP=/*NOTICE_POPUP_START*/{"active":false,"content":"공지사항을 입력하세요."}/*NOTICE_POPUP_END*/;
+</script>
+
 <script id="inquiry-text-script">
 var ADM_INQUIRY_TEXT=/*INQUIRY_START*/"하드웨어 중 추가를 원하는 제품이나 개선을 바라는 점을<br>적어 주시면 관리자가 확인 후 피드백 드립니다."/*INQUIRY_END*/;
 </script>
@@ -1191,6 +1257,13 @@ function admGetCurrentHTML(){
   // 카테고리 반영
   html=html.replace(/var ADM_CATS=\[.*?\];/,'var ADM_CATS='+JSON.stringify(ADM_CATS)+';');
 
+  // 공지 팝업 반영
+  var npS='/*NOTICE_POPUP_START*/';var npE='/*NOTICE_POPUP_END*/';
+  var npSi=html.indexOf(npS);var npEi=html.indexOf(npE);
+  if(npSi!==-1&&npEi!==-1){
+    html=html.substring(0,npSi)+npS+JSON.stringify(ADM_NOTICE_POPUP)+npE+html.substring(npEi+npE.length);
+  }
+
   // 문의 안내 문구 반영
   var iqS='/*INQUIRY_START*/';var iqE='/*INQUIRY_END*/';
   var iqSi=html.indexOf(iqS);var iqEi=html.indexOf(iqE);
@@ -1495,6 +1568,7 @@ function admSwitchTab(tab){
   document.getElementById('adm-tab-notice').classList.toggle('on',tab==='notice');
   document.getElementById('adm-tab-users').classList.toggle('on',tab==='users');
   document.getElementById('adm-tab-inquiry').classList.toggle('on',tab==='inquiry');
+  document.getElementById('adm-tab-popup').classList.toggle('on',tab==='popup');
   document.getElementById('adm-edit-view').classList.toggle('on',tab==='edit');
   document.getElementById('adm-new-view').classList.toggle('on',tab==='new');
   document.getElementById('adm-cat-view').style.display=(tab==='cat')?'block':'none';
@@ -1502,6 +1576,7 @@ function admSwitchTab(tab){
   document.getElementById('adm-notice-view').style.display=(tab==='notice')?'block':'none';
   document.getElementById('adm-users-view').style.display=(tab==='users')?'block':'none';
   document.getElementById('adm-inquiry-view').style.display=(tab==='inquiry')?'block':'none';
+  document.getElementById('adm-popup-view').style.display=(tab==='popup')?'block':'none';
   if(tab==='cat')admCatRender();
   if(tab==='stock'){admStockRenderList('');admStockUpdateDate();}
   if(tab==='notice'){
@@ -1510,6 +1585,7 @@ function admSwitchTab(tab){
   }
   if(tab==='users'){admRenderApprovedUsers();}
   if(tab==='inquiry'){admLoadInquiries();}
+  if(tab==='popup'){admPopupTabOpen();}
 }
 
 // ── 안내메시지 WYSIWYG ────────
@@ -1539,6 +1615,86 @@ function noticeReset(){
   var ed=document.getElementById('adm-notice-ed');
   if(ed)ed.innerHTML='안녕하세요. 👋<br><br><b>하드웨어 챗봇</b>입니다.';
 }
+/* ══ 공지 팝업 ══════════════════════════════════════════ */
+function noticePopupClose(){
+  var hide=document.getElementById('notice-today-hide');
+  if(hide&&hide.checked){
+    var today=new Date().toDateString();
+    localStorage.setItem('woodin_notice_hide',today);
+  }
+  document.getElementById('notice-popup-modal').style.display='none';
+}
+
+function noticePopupShow(){
+  if(!ADM_NOTICE_POPUP||!ADM_NOTICE_POPUP.active)return;
+  var hideDate=localStorage.getItem('woodin_notice_hide');
+  if(hideDate===new Date().toDateString())return;
+  var body=document.getElementById('notice-popup-body');
+  if(body)body.innerHTML=ADM_NOTICE_POPUP.content||'';
+  var chk=document.getElementById('notice-today-hide');
+  if(chk)chk.checked=false;
+  document.getElementById('notice-popup-modal').style.display='flex';
+}
+
+/* ── 관리자: 공지 탭 ── */
+function admPopupTabOpen(){
+  var ed=document.getElementById('adm-popup-ed');
+  if(ed)ed.innerHTML=(ADM_NOTICE_POPUP&&ADM_NOTICE_POPUP.content)||'';
+  var tog=document.getElementById('popup-active-toggle');
+  var slider=document.getElementById('popup-toggle-slider');
+  var label=document.getElementById('popup-active-label');
+  var active=ADM_NOTICE_POPUP&&ADM_NOTICE_POPUP.active;
+  if(tog)tog.checked=active;
+  if(slider)slider.style.background=active?'#1a4fa0':'#ccc';
+  if(label){label.textContent=active?'켜짐':'꺼짐';label.style.color=active?'#1a4fa0':'#aaa';}
+}
+
+function admPopupToggle(){
+  var tog=document.getElementById('popup-active-toggle');
+  var slider=document.getElementById('popup-toggle-slider');
+  var label=document.getElementById('popup-active-label');
+  var active=tog.checked;
+  if(!ADM_NOTICE_POPUP)ADM_NOTICE_POPUP={active:false,content:''};
+  ADM_NOTICE_POPUP.active=active;
+  if(slider)slider.style.background=active?'#1a4fa0':'#ccc';
+  if(label){label.textContent=active?'켜짐':'꺼짐';label.style.color=active?'#1a4fa0':'#aaa';}
+}
+
+function popupCmd(cmd,val){
+  var ed=document.getElementById('adm-popup-ed');
+  if(ed)ed.focus();
+  document.execCommand(cmd,false,val||null);
+}
+
+function popupNoticeReset(){
+  if(!confirm('초기화하시겠습니까?'))return;
+  var ed=document.getElementById('adm-popup-ed');
+  if(ed)ed.innerHTML='공지사항을 입력하세요.';
+}
+
+function admPreviewPopup(){
+  var ed=document.getElementById('adm-popup-ed');
+  if(!ed)return;
+  var body=document.getElementById('notice-popup-body');
+  if(body)body.innerHTML=ed.innerHTML;
+  var chk=document.getElementById('notice-today-hide');
+  if(chk)chk.checked=false;
+  document.getElementById('notice-popup-modal').style.display='flex';
+}
+
+function admPopupSaveAndPush(){
+  var ed=document.getElementById('adm-popup-ed');
+  if(!ed)return;
+  if(!ADM_NOTICE_POPUP)ADM_NOTICE_POPUP={active:false,content:''};
+  ADM_NOTICE_POPUP.content=ed.innerHTML;
+  var tog=document.getElementById('popup-active-toggle');
+  if(tog)ADM_NOTICE_POPUP.active=tog.checked;
+  admPushToGitHub(function(){
+    var msg=document.getElementById('adm-popup-msg');
+    if(msg){msg.style.display='inline';setTimeout(function(){msg.style.display='none';},2500);}
+  });
+}
+
 /* ══ 문의 안내 문구 편집 ══ */
 function inquiryCmd(cmd,val){
   var ed=document.getElementById('adm-inquiry-ed');
@@ -2086,6 +2242,7 @@ function gateInit(){
       document.getElementById('user-gate').style.display='none';
       gateShowUserInfo();
       showUserReplies();
+      noticePopupShow();
       return;
     }
   } catch(e){}
@@ -2196,6 +2353,7 @@ function gateDoLogin(){
   document.getElementById('user-gate').style.display='none';
   gateShowUserInfo();
   showUserReplies();
+  noticePopupShow();
 }
 
 async function gateDoSignup(){

@@ -2341,7 +2341,7 @@ async function admLoadInquiries(){
       var existReply=null;
       ADM_USERS.forEach(function(u){
         if(u.name===writer&&u.replies){
-          u.replies.forEach(function(r){if(r.issueNum===issue.number)existReply=r;});
+          u.replies.forEach(function(r){if(Number(r.issueNum)===Number(issue.number))existReply=r;});
         }
       });
       var replyId='reply-'+issue.number;

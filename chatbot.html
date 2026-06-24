@@ -333,7 +333,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
       <button id="mobile-inq-btn" onclick="mobileInqOpen()" style="font-size:11px;padding:4px 8px;background:#f0f4ff;border:1px solid #c5d0e8;border-radius:12px;color:#1a4fa0;cursor:pointer">📝 문의</button>
       <button onclick="userLogout()" style="font-size:11px;padding:4px 8px;background:#fff0f0;border:1px solid #fcc;border-radius:12px;color:#c33;cursor:pointer">로그아웃</button>
     </div>
-    <button id="adm-btn" onclick="admBtnClick()">⚙ 관리자</button>
+    <button id="adm-btn" onclick="admBtnClick()" style="display:none">⚙ 관리자</button>
   </div>
 
 <!-- 사용자 직접추가 모달 -->
@@ -2167,6 +2167,9 @@ function gateShowUserInfo(){
     nm.textContent = CURRENT_USER.name || CURRENT_USER.id;
     el.style.display='flex';
   }
+  // 일반 사용자는 관리자 버튼 숨기기
+  var admBtn=document.getElementById('adm-btn');
+  if(admBtn) admBtn.style.display='none';
   // 사이드 패널 이름 자동입력
   var sw = document.getElementById('side-writer');
   if(sw && CURRENT_USER && CURRENT_USER.name) sw.value = CURRENT_USER.name;

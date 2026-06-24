@@ -1199,6 +1199,13 @@ function admGetCurrentHTML(){
     html=html.substring(0,usSi)+usS+JSON.stringify(ADM_USERS)+usE+html.substring(usEi+usE.length);
   }
 
+  // sessionStorage → cookie 영구 적용
+  html=html.replace("sessionStorage.getItem('woodin_user')","getCookie('woodin_user')");
+  html=html.replace("sessionStorage.setItem('woodin_user', JSON.stringify({id:CURRENT_USER.id, name:CURRENT_USER.name}));","setCookie('woodin_user', JSON.stringify({id:CURRENT_USER.id, name:CURRENT_USER.name}), 7);");
+  html=html.replace("sessionStorage.removeItem('woodin_user');","removeCookie('woodin_user');");
+  html=html.replace("sessionStorage.setItem('woodin_user', JSON.stringify(CURRENT_USER));","setCookie('woodin_user', JSON.stringify(CURRENT_USER), 7);");
+  html=html.replace("u.id===saved.id&&u.pw===saved.pw","u.id===saved.id");
+
   // 카테고리 반영
   html=html.replace(/var ADM_CATS=\[.*?\];/,'var ADM_CATS='+JSON.stringify(ADM_CATS)+';');
 

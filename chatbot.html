@@ -2936,13 +2936,20 @@ function tokenize(q){
   var bySpace=ql.split(/\s+/).filter(function(w){return w.length>0;});
   bySpace.forEach(function(w){
     tokens.push(w);
-    // 숫자↔문자 경계 분리 (예: 45t → 45, t)
-    var parts=w.replace(/([0-9]+)([^0-9])/g,'$1 $2').replace(/([^0-9])([0-9]+)/g,'$1 $2').split(/\s+/).filter(function(p){return p.length>0;});
+    // 숫자↔한글 경계 분리 (예: 45t도어 → 45t, 도어 / 45도어 → 45, 도어)
+    // 영문은 숫자와 붙어있어도 분리하지 않음 (45t는 하나의 단위로 유지)
+    var parts=w
+      .replace(/([0-9]+[a-z]*)([가-힣]+)/g,'$1 $2')  // 45t도어 → 45t 도어
+      .replace(/([가-힣]+)([0-9]+)/g,'$1 $2')          // 도어45 → 도어 45
+      .split(/\s+/).filter(function(p){return p.length>0;});
     parts.forEach(function(p){if(p!==w)tokens.push(p);});
   });
-  // 2) 전체 붙여쓰기 버전 추가 (띄어쓰기 없이 입력한 경우 대응)
+  // 2) 전체 붙여쓰기 버전 추가
   var nospace=ql.replace(/\s/g,'');
   if(nospace&&tokens.indexOf(nospace)===-1)tokens.push(nospace);
+  // 3) 숫자만 추출 (예: 45t도어사용 → 45)
+  var nums=ql.match(/[0-9]+/g)||[];
+  nums.forEach(function(n){if(tokens.indexOf(n)===-1)tokens.push(n);});
   // 중복 제거
   return tokens.filter(function(v,i,a){return a.indexOf(v)===i&&v.length>0;});
 }

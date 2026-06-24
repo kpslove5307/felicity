@@ -3092,10 +3092,17 @@ async function askAI(q, products){
       else{addBot('<b>🔍 "'+q+'" 관련 제품 ('+products.length+'개)</b><br><small style="color:#90a4ae">원하는 제품을 선택하세요</small>',products);}
       return;
     }
-    addBot('<b>🤖 AI 답변</b><br><br>'+answer.replace(/\n/g,'<br>')+'<br><br><small style="color:#90a4ae">📦 관련 제품</small>',products);
+    // AI 답변 텍스트 먼저 표시
+    addBot('<b>🤖 AI 답변</b><br><br>'+answer.replace(/\n/g,'<br>'),null);
+    // 제품 카드 표시 (단일이면 상세카드, 복수면 선택 버튼)
+    if(products.length===1){
+      showProductCard(products[0]);
+    } else {
+      addBot('<small style="color:#90a4ae">📦 관련 제품</small>',products);
+    }
   }catch(e){
     msgsEl.removeChild(loadEl);
-    if(products.length===1){addBot(null,[],buildCard(products[0]));}
+    if(products.length===1){showProductCard(products[0]);}
     else{addBot('<b>🔍 "'+q+'" 관련 제품 ('+products.length+'개)</b>',products);}
   }
 }

@@ -2963,11 +2963,20 @@ function tokenize(q){
   return tokens;
 }
 
-// 토큰별 독립 매칭 점수 계산 (순서 무관, 띄어쓰기 무관)
+// 토큰별 독립 매칭 점수 계산 - 제품명 매칭 가중치 적용
 function scoreProduct(k, tokens){
   var txt=getProductText(k);
+  var kl=k.toLowerCase().replace(/\s/g,'');
   var score=0;
-  tokens.forEach(function(t){if(txt.indexOf(t)!==-1)score++;});
+  tokens.forEach(function(t){
+    if(txt.indexOf(t)===-1)return;
+    // 제품명에 직접 포함되면 가중치 3배
+    if(kl.indexOf(t)!==-1){score+=3;}
+    // 카테고리에 포함되면 가중치 1.5배
+    else if(DB[k]&&DB[k].cat&&DB[k].cat.toLowerCase().indexOf(t)!==-1){score+=1.5;}
+    // 상세설명/스펙에 포함
+    else{score+=1;}
+  });
   return score;
 }
 
@@ -2981,6 +2990,10 @@ function smartSearch(q){
     if(s>0)scored.push({k:k,score:s});
   });
   scored.sort(function(a,b){return b.score-a.score||a.k.localeCompare(b.k,'ko');});
+  // 최고점이 2위보다 2배 이상 높으면 단독 1위로 확정
+  if(scored.length>=2&&scored[0].score>=scored[1].score*1.5){
+    return[scored[0]];
+  }
   return scored;
 }
 

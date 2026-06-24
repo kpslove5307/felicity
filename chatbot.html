@@ -330,6 +330,7 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
     <div id="user-info" style="display: flex; align-items: center; gap: 6px;">
       <span id="user-info-name" style="font-size:12px;color:#555;max-width:70px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">우딘</span>
       <button onclick="userOpenChpw()" style="font-size:11px;padding:4px 8px;background:#f0f4ff;border:1px solid #c5d0e8;border-radius:12px;color:#1a4fa0;cursor:pointer">🔑 비번변경</button>
+      <button id="mobile-inq-btn" onclick="mobileInqOpen()" style="font-size:11px;padding:4px 8px;background:#f0f4ff;border:1px solid #c5d0e8;border-radius:12px;color:#1a4fa0;cursor:pointer">📝 문의</button>
       <button onclick="userLogout()" style="font-size:11px;padding:4px 8px;background:#fff0f0;border:1px solid #fcc;border-radius:12px;color:#c33;cursor:pointer">로그아웃</button>
     </div>
     <button id="adm-btn" onclick="admBtnClick()">⚙ 관리자</button>
@@ -3094,7 +3095,56 @@ addBot(ADM_NOTICE,ADM_CATS);
     loadImages();
   }
 })();
+
+/* ══ 모바일 문의 모달 ══ */
+function mobileInqOpen(){
+  if(!CURRENT_USER){alert('로그인이 필요합니다.');return;}
+  document.getElementById('mobile-inq-text').value='';
+  var modal=document.getElementById('mobile-inq-modal');
+  modal.style.display='flex';
+}
+function mobileInqClose(){
+  document.getElementById('mobile-inq-modal').style.display='none';
+}
+async function mobileInqSubmit(){
+  var text=(document.getElementById('mobile-inq-text').value||'').trim();
+  if(!text){alert('내용을 입력해주세요.');return;}
+  var cfg=getIssueConfig();
+  if(!cfg||!cfg.token){alert('설정이 필요합니다.');return;}
+  var btn=document.querySelector('#mobile-inq-modal button:last-child');
+  btn.disabled=true;btn.textContent='제출 중...';
+  try{
+    var body='작성자: '+CURRENT_USER.name+'\n\n'+text+'\n\n접수일시: '+new Date().toLocaleString('ko-KR');
+    var res=await fetch('https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/issues',{
+      method:'POST',
+      headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json','Content-Type':'application/json'},
+      body:JSON.stringify({title:'[문의] '+CURRENT_USER.name,body:body})
+    });
+    if(!res.ok)throw new Error('제출 실패');
+    mobileInqClose();
+    alert('✅ 문의가 접수되었습니다!\n관리자 확인 후 답글이 달립니다.');
+  }catch(e){
+    alert('❌ 오류: '+e.message);
+  }finally{
+    btn.disabled=false;btn.textContent='제출하기';
+  }
+}
+
 </script>
 
 
-<div id="claude-agent-glow-border" style="position: fixed; inset: 0px; pointer-events: none; z-index: 2147483646; opacity: 1; transition: opacity 0.3s ease-in-out;"><div id="claude-agent-glow-border-inner" style="position: absolute; inset: 0px; will-change: opacity; box-shadow: rgba(217, 119, 87, 0.7) 0px 0px 15px inset, rgba(217, 119, 87, 0.5) 0px 0px 25px inset, rgba(217, 119, 87, 0.2) 0px 0px 35px inset;"></div></div><div id="claude-phantom-cursor" aria-hidden="true" style="position: fixed; top: 0px; left: 0px; pointer-events: none; z-index: 2147483646; transform: translate3d(1326px, 665px, 0px); transition: transform 180ms cubic-bezier(0.2, 0, 0, 1); will-change: transform;"><svg id="claude-phantom-cursor-plain" width="20" height="26" viewBox="0 0 20 26" style="position: absolute; top: 0px; left: 0px; overflow: visible;"><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" stroke="white" stroke-width="3" stroke-linejoin="round" fill="white"></path><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" fill="#111"></path></svg><svg id="claude-phantom-cursor-styled" width="20" height="26" viewBox="0 0 20 26" style="position: absolute; top: 0px; left: 0px; overflow: visible; filter: drop-shadow(rgba(217, 119, 87, 0.9) 0px 0px 4px) drop-shadow(rgba(217, 119, 87, 0.45) 0px 0px 10px);"><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" stroke="#D97757" stroke-width="3" stroke-linejoin="round" fill="#D97757"></path><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" fill="#FAF9F5"></path></svg></div></body></html>
+<div id="claude-agent-glow-border" style="position: fixed; inset: 0px; pointer-events: none; z-index: 2147483646; opacity: 1; transition: opacity 0.3s ease-in-out;"><div id="claude-agent-glow-border-inner" style="position: absolute; inset: 0px; will-change: opacity; box-shadow: rgba(217, 119, 87, 0.7) 0px 0px 15px inset, rgba(217, 119, 87, 0.5) 0px 0px 25px inset, rgba(217, 119, 87, 0.2) 0px 0px 35px inset;"></div></div><div id="claude-phantom-cursor" aria-hidden="true" style="position: fixed; top: 0px; left: 0px; pointer-events: none; z-index: 2147483646; transform: translate3d(1326px, 665px, 0px); transition: transform 180ms cubic-bezier(0.2, 0, 0, 1); will-change: transform;"><svg id="claude-phantom-cursor-plain" width="20" height="26" viewBox="0 0 20 26" style="position: absolute; top: 0px; left: 0px; overflow: visible;"><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" stroke="white" stroke-width="3" stroke-linejoin="round" fill="white"></path><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" fill="#111"></path></svg><svg id="claude-phantom-cursor-styled" width="20" height="26" viewBox="0 0 20 26" style="position: absolute; top: 0px; left: 0px; overflow: visible; filter: drop-shadow(rgba(217, 119, 87, 0.9) 0px 0px 4px) drop-shadow(rgba(217, 119, 87, 0.45) 0px 0px 10px);"><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" stroke="#D97757" stroke-width="3" stroke-linejoin="round" fill="#D97757"></path><path d="M0 0 L0 18 L4.5 14 L7.5 21.5 L11 20 L8 13 L14 13 Z" fill="#FAF9F5"></path></svg></div>
+<!-- ══ 모바일 문의 모달 ══ -->
+<div id="mobile-inq-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:99998;align-items:center;justify-content:center">
+  <div style="background:#fff;border-radius:16px;padding:24px 20px;width:92%;max-width:420px;box-shadow:0 4px 24px rgba(0,0,0,0.18)">
+    <div style="font-size:15px;font-weight:700;color:#333;margin-bottom:6px">📝 문의하기</div>
+    <div style="font-size:12px;color:#aaa;margin-bottom:14px">제품 추가·개선이 필요한 부분을 적어주시면 관리자가 확인 후 피드백 드립니다.</div>
+    <textarea id="mobile-inq-text" placeholder="내용을 입력하세요&#10;예) P-01 블루 컬러 추가 요청&#10;예) 실린더 규격표 상세설명 추가 요청" rows="5"
+      style="width:100%;box-sizing:border-box;padding:10px 12px;border:1px solid #ddd;border-radius:10px;font-size:13px;font-family:inherit;resize:vertical;outline:none;line-height:1.6"></textarea>
+    <div style="display:flex;gap:8px;margin-top:12px">
+      <button onclick="mobileInqClose()" style="flex:1;padding:10px;border:1px solid #ddd;border-radius:10px;background:#f8f8f8;font-size:13px;cursor:pointer;color:#666">취소</button>
+      <button onclick="mobileInqSubmit()" style="flex:2;padding:10px;border:none;border-radius:10px;background:#1a4fa0;color:#fff;font-size:13px;font-weight:700;cursor:pointer">제출하기</button>
+    </div>
+  </div>
+</div>
+</body></html>

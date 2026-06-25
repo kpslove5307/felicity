@@ -1147,155 +1147,6 @@ function admGhUpdateStatus(){
   }
 }
 
-/* 현재 HTML 전체를 문자열로 직렬화 */
-function admGetCurrentHTML(){
-  var hideIds=['adm-upload-overlay','adm-panel','adm-login-overlay','adm-gh-modal','adm-chpw-modal','lb'];
-  // 저장 시 로그인 폼 초기 상태로 고정
-  var gateLoginEl=document.getElementById('gate-login-form');
-  var gateAdminEl=document.getElementById('gate-admin-form');
-  var gateSignupEl=document.getElementById('gate-signup-form');
-  var gatePendingEl=document.getElementById('gate-pending-form');
-  var savedGateLogin=gateLoginEl?gateLoginEl.style.display:'';
-  var savedGateAdmin=gateAdminEl?gateAdminEl.style.display:'';
-  if(gateLoginEl)gateLoginEl.style.display='block';
-  if(gateAdminEl)gateAdminEl.style.display='none';
-  if(gateSignupEl)gateSignupEl.style.display='none';
-  if(gatePendingEl)gatePendingEl.style.display='none';
-  var removed=[];
-  hideIds.forEach(function(id){
-    var el=document.getElementById(id);
-    if(el&&el.classList.contains('show')){el.classList.remove('show');removed.push(el);}
-  });
-  // 그리드 img src 임시 제거
-  var gridIds=['adm-real-grid','adm-draw-grid','adm-desc-grid','adm-new-real-grid','adm-new-draw-grid','adm-new-desc-grid'];
-  var savedImgs=[];
-  gridIds.forEach(function(id){
-    var grid=document.getElementById(id);
-    if(!grid)return;
-    grid.querySelectorAll('img').forEach(function(img){
-      savedImgs.push({el:img,src:img.src});
-      img.src='';
-    });
-  });
-  // msgs 비우기
-  var msgsEl=document.getElementById('msgs');
-  var savedMsgs=msgsEl?msgsEl.innerHTML:'';
-  if(msgsEl)msgsEl.innerHTML='';
-
-  var dt=document.doctype;
-  var dtStr=dt?'<!DOCTYPE '+dt.name+'>':'';
-  var html=dtStr+document.documentElement.outerHTML;
-
-  // gate 폼 상태 복원
-  if(gateLoginEl)gateLoginEl.style.display=savedGateLogin;
-  if(gateAdminEl)gateAdminEl.style.display=savedGateAdmin;
-  // 복원
-  removed.forEach(function(el){el.classList.add('show');});
-  savedImgs.forEach(function(o){o.el.src=o.src;});
-  if(msgsEl)msgsEl.innerHTML=savedMsgs;
-
-  // DB를 문자열 치환으로 교체 (textContent 방식 대신)
-  try{
-    var dbJson=JSON.stringify(DB);
-    // outerHTML에서 DB_START~DB_END 사이를 현재 DB로 교체
-    var sm='/*DB_START*/';
-    var em='/*DB_END*/';
-    var si=html.indexOf(sm);
-    var ei=html.indexOf(em);
-    if(si!==-1&&ei!==-1){
-      html=html.substring(0,si)+sm+dbJson.slice(1,-1)+'\n};\n'+em+html.substring(ei+em.length);
-    }
-  }catch(e){console.error('DB 직렬화 오류:',e);}
-
-  // 비밀번호 반영
-  html=html.replace(/var ADM_PW='[^']*';/,'var ADM_PW=\''+ADM_PW.replace(/\\/g,'\\\\').replace(/'/g,"\\'")+"';");
-
-  // 사용자 목록 반영
-  // ADM_USERS 반영 - MARKER 방식
-  var usS='/*USER'+'S_START*/';var usE='/*USER'+'S_END*/';
-  var usSi=html.indexOf(usS);var usEi=html.indexOf(usE);
-  if(usSi!==-1&&usEi!==-1){
-    html=html.substring(0,usSi)+usS+JSON.stringify(ADM_USERS)+usE+html.substring(usEi+usE.length);
-  }
-
-  // sessionStorage → cookie 영구 적용
-  html=html.replace("sessionStorage.getItem('woodin_user')","getCookie('woodin_user')");
-  html=html.replace("sessionStorage.setItem('woodin_user', JSON.stringify({id:CURRENT_USER.id, name:CURRENT_USER.name}));","setCookie('woodin_user', JSON.stringify({id:CURRENT_USER.id, name:CURRENT_USER.name}), 7);");
-  html=html.replace("sessionStorage.removeItem('woodin_user');","removeCookie('woodin_user');");
-  html=html.replace("sessionStorage.setItem('woodin_user', JSON.stringify(CURRENT_USER));","setCookie('woodin_user', JSON.stringify(CURRENT_USER), 7);");
-  html=html.replace("u.id===saved.id&&u.pw===saved.pw","u.id===saved.id");
-
-  // 카테고리 반영
-  html=html.replace(/var ADM_CATS=\[[^\]]*\];/,'var ADM_CATS='+JSON.stringify(ADM_CATS)+';');
-
-  // 문의 안내 문구 반영
-  var iqS='/*INQUIRY_START*/';var iqE='/*INQUIRY_END*/';
-  var iqSi=html.indexOf(iqS);var iqEi=html.indexOf(iqE);
-  if(iqSi!==-1&&iqEi!==-1){
-    html=html.substring(0,iqSi)+iqS+JSON.stringify(ADM_INQUIRY_TEXT)+iqE+html.substring(iqEi+iqE.length);
-  }
-
-  // 안내메시지 반영 - notice-script 태그 내 NOTICE_START/END 사이만 교체
-  // (직렬화 코드 자체가 같은 마커를 포함하지만, notice-script가 항상 먼저 등장)
-  var ns='/*NOTICE_START*/';
-  var ne='/*NOTICE_END*/';
-  var nsi=html.indexOf(ns);
-  var nei=html.indexOf(ne);
-  if(nsi!==-1&&nei!==-1){
-    html=html.substring(0,nsi)+ns+'`'+ADM_NOTICE.replace(/`/g,'\\`')+'`'+ne+html.substring(nei+ne.length);
-  }
-
-  // adm-foot 중복 방지 - 마지막 1개만 유지
-  var footTag='<div class="adm-foot">';
-  var footPositions=[];
-  var searchFrom=0;
-  while(true){var fp=html.indexOf(footTag,searchFrom);if(fp===-1)break;footPositions.push(fp);searchFrom=fp+1;}
-  if(footPositions.length>1){
-    for(var fi=footPositions.length-2;fi>=0;fi--){
-      var fs=footPositions[fi];
-      var fe=html.indexOf('</div>',html.indexOf('</div>',fs)+6)+6;
-      var fsClean=fs;
-      while(fsClean>0&&(html[fsClean-1]===' '||html[fsClean-1]==='\n'||html[fsClean-1]==='\t'))fsClean--;
-      html=html.substring(0,fsClean)+'\n'+html.substring(fe);
-    }
-  }
-
-  // adm-foot 중복 방지
-  (function(){
-    var ft='<div class="adm-foot">';
-    var fps=[];var si=0;
-    while(true){var fp=html.indexOf(ft,si);if(fp===-1)break;fps.push(fp);si=fp+1;}
-    for(var fi=fps.length-2;fi>=0;fi--){
-      var fs=fps[fi],fe=fs,d=0,j=fs;
-      while(j<html.length){if(html.substr(j,4)==='<div')d++;else if(html.substr(j,6)==='</div>'){d--;if(d===0){fe=j+6;break;}}j++;}
-      var fsC=fs;while(fsC>0&&(html[fsC-1]===' '||html[fsC-1]==='\n'))fsC--;
-      html=html.substring(0,fsC)+'\n'+html.substring(fe);
-    }
-  })();
-
-  // ── 필수 요소 보존 (저장해도 날아가지 않도록) ──
-
-  // 1. adm-foot (저장/업로드/닫기 버튼) 없으면 추가
-  if(html.indexOf('<div class="adm-foot">')<0){
-    var innerCloseIdx=html.lastIndexOf('</div>\n    </div>\n\n  </div>');
-    if(innerCloseIdx>0){
-      var footHtml='\n      <div class="adm-foot">\n        <button class="adm-save-btn" onclick="admSaveLocal()">💾 저장</button>\n        <button class="adm-push-btn" onclick="admSaveAndPush()">💾 저장 + GitHub 업로드</button>\n        <button class="adm-close-btn" onclick="admClosePanel()">닫기</button>\n      </div>';
-      html=html.substring(0,innerCloseIdx)+footHtml+html.substring(innerCloseIdx);
-    }
-  }
-
-  // 2. 상단 저장+업로드 버튼 없으면 추가
-  var topSaveBtn='<button onclick="admSaveAndPush()"';
-  if(html.indexOf(topSaveBtn)<0){
-    var htmlUploadBtn='onclick="admPushToGitHub(null)"';
-    var btnEnd=html.indexOf('</button>',html.indexOf(htmlUploadBtn))+9;
-    if(btnEnd>8){
-      html=html.substring(0,btnEnd)+'\n      <button onclick="admSaveAndPush()" style="padding:5px 12px;background:#1a3a5c;color:#fff;border:none;border-radius:6px;cursor:pointer;font-size:12px;font-weight:700;">💾 저장 + GitHub 업로드</button>'+html.substring(btnEnd);
-    }
-  }
-
-  return html;
-}
 
 /* GitHub API 단일 파일 PUT 헬퍼 */
 async function ghPutFile(cfg, filePath, content, commitMsg){
@@ -1355,6 +1206,15 @@ async function admPushToGitHub(onSuccess){
     var latestD=await latestRes.json();
     var html=decodeURIComponent(escape(atob(latestD.content.replace(/\n/g,''))));
 
+    // adm-foot 보존 (없으면 삽입)
+    if(html.indexOf('<div class="adm-foot">')<0){
+      var innerClose=html.lastIndexOf('</div>\n    </div>\n\n  </div>');
+      if(innerClose>0){
+        var footHtml='\n      <div class="adm-foot">\n        <button class="adm-save-btn" onclick="admSaveLocal()">\uD83D\uDCBE 저장</button>\n        <button class="adm-push-btn" onclick="admSaveAndPush()">\uD83D\uDE80 저장 + GitHub 업로드</button>\n        <button class="adm-close-btn" onclick="admClosePanel()">닫기</button>\n      </div>';
+        html=html.substring(0,innerClose)+footHtml+html.substring(innerClose);
+      }
+    }
+
     // ADM_USERS 교체
     var usS='/*USER'+'S_START*/';var usE='/*USER'+'S_END*/';
     var si=html.indexOf(usS),ei=html.indexOf(usE);
@@ -1366,18 +1226,10 @@ async function admPushToGitHub(onSuccess){
     // ADM_NOTICE 교체
     var ntS='/*NOTI'+'CE_START*/';var ntE='/*NOTI'+'CE_END*/';
     var ni=html.indexOf(ntS),ne=html.indexOf(ntE);
-    if(ni!==-1&&ne!==-1)html=html.substring(0,ni)+ntS+'`'+ADM_NOTICE.replace(/`/g,'\\`')+'`'+ntE+html.substring(ne+ntE.length);
+    if(ni!==-1&&ne!==-1)html=html.substring(0,ni)+ntS+ADM_NOTICE+ntE+html.substring(ne+ntE.length);
 
     // ADM_PW 교체
     html=html.replace(/var ADM_PW='[^']*';/,"var ADM_PW='dnels1122';");
-
-    // DB 교체
-    var dbS='/*DB_'+'START*/';var dbE='/*DB_'+'END*/';
-    var dsi=html.indexOf(dbS),dei=html.indexOf(dbE);
-    if(dsi!==-1&&dei!==-1){
-      var dbJson=JSON.stringify(DB);
-      html=html.substring(0,dsi)+dbS+'\n'+dbJson.slice(1,-1)+'\n'+dbE+html.substring(dei+dbE.length);
-    }
 
     // I (이미지) placeholder 반영
     for(var k in I){

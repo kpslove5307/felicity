@@ -529,6 +529,15 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
         </div>
       </div>
 
+      <!-- 내부정보 (영업팀/수주팀 전용) -->
+      <div class="adm-sec" style="border-color:#f5c6c6;background:#fff8f8">
+        <p class="adm-sec-hd" style="color:#c0392b">🔒 내부정보 <span style="font-weight:400;color:#aaa;font-size:11px">(영업팀·수주팀 아이디만 열람 가능)</span></p>
+        <div class="adm-field">
+          <textarea id="adm-inner-text" placeholder="내부 전용 정보를 입력하세요
+예) 단가, 마진율, 납기 협의 내용, 거래처 메모 등" style="width:100%;min-height:90px;padding:8px 10px;border:1px solid #f5c6c6;border-radius:7px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;line-height:1.6;background:#fff8f8"></textarea>
+        </div>
+      </div>
+
       <div class="adm-foot">
         <button class="adm-save" onclick="admSave()">💾 저장</button>
         <button class="adm-save" style="background:#28a745" onclick="admSaveAndPush()">🚀 저장 + GitHub 업로드</button>
@@ -587,6 +596,15 @@ body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;a
         <div class="adm-drop" id="adm-new-desc-drop" onclick="document.getElementById('adm-new-desc-file').click()">
           <input type="file" id="adm-new-desc-file" accept="image/*" multiple="" onchange="admHandleFiles(this,'newDesc')">
           ＋ 클릭 또는 드래그
+        </div>
+      </div>
+
+      <!-- 내부정보 (영업팀/수주팀 전용) -->
+      <div class="adm-sec" style="border-color:#f5c6c6;background:#fff8f8">
+        <p class="adm-sec-hd" style="color:#c0392b">🔒 내부정보 <span style="font-weight:400;color:#aaa;font-size:11px">(영업팀·수주팀 아이디만 열람 가능)</span></p>
+        <div class="adm-field">
+          <textarea id="adm-new-inner-text" placeholder="내부 전용 정보를 입력하세요
+예) 단가, 마진율, 납기 협의 내용, 거래처 메모 등" style="width:100%;min-height:90px;padding:8px 10px;border:1px solid #f5c6c6;border-radius:7px;font-size:13px;font-family:inherit;resize:vertical;box-sizing:border-box;line-height:1.6;background:#fff8f8"></textarea>
         </div>
       </div>
 
@@ -964,9 +982,13 @@ function buildCard(key){
   var p=DB[key];if(!p)return null;
   var card=document.createElement('div');card.className='pcard';
   var tbr=document.createElement('div');tbr.className='tbr';
-  var panes={img:document.createElement('div'),draw:document.createElement('div'),video:document.createElement('div')};
-  [{id:'img',l:'🖼 이미지'},{id:'draw',l:'📐 도면'},{id:'video',l:'📋 상세설명'}].forEach(function(td,i){
+  var canSeeInner=CURRENT_USER&&(CURRENT_USER.id.indexOf('수주팀')!==-1||CURRENT_USER.id.indexOf('영업팀')!==-1||CURRENT_USER.id==='admin');
+  var tabDefs=[{id:'img',l:'🖼 이미지'},{id:'draw',l:'📐 도면'},{id:'video',l:'📋 상세설명'}];
+  if(canSeeInner)tabDefs.push({id:'inner',l:'🔒 내부정보'});
+  var panes={img:document.createElement('div'),draw:document.createElement('div'),video:document.createElement('div'),inner:document.createElement('div')};
+  tabDefs.forEach(function(td,i){
     var btn=document.createElement('button');btn.className='tab'+(i===0?' on':'');btn.textContent=td.l;
+    if(td.id==='inner'){btn.style.color='#c0392b';btn.style.fontSize='10px';}
     var pane=panes[td.id];pane.className='tp'+(i===0?' on':'');
     btn.addEventListener('click',function(){
       tbr.querySelectorAll('.tab').forEach(function(b){b.classList.remove('on');});
@@ -999,6 +1021,21 @@ function buildCard(key){
     var e3=document.createElement('div');e3.className='etp';
     e3.innerHTML='<span class="ei">📋</span>상세설명 준비 중<br><small>관리자 모드에서 추가하세요</small>';
     panes.video.appendChild(e3);
+  }
+  // 내부정보 패널
+  if(canSeeInner){
+    if(p.innerText&&p.innerText.trim()){
+      var it=document.createElement('div');
+      it.style.cssText='white-space:pre-wrap;line-height:1.8;font-size:13px;color:#2c2c2c;padding:16px 18px;background:#fff8f0;border-radius:0;margin:0;border:none;border-left:4px solid #c0392b;font-family:inherit';
+      var urlReg2=/(https?:\/\/[^\s\u3000\uff00-\uffef<>"]+)/g;
+      var esc2=p.innerText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+      it.innerHTML=esc2.replace(urlReg2,'<a href="$1" target="_blank" rel="noopener" style="color:#1a73e8;text-decoration:underline;word-break:break-all;">$1</a>');
+      panes.inner.appendChild(it);
+    } else {
+      var ei=document.createElement('div');ei.className='etp';
+      ei.innerHTML='<span class="ei">🔒</span>내부정보 없음<br><small>관리자 모드에서 추가하세요</small>';
+      panes.inner.appendChild(ei);
+    }
   }
   Object.values(panes).forEach(function(pane){card.appendChild(pane);});
   var pb=document.createElement('div');pb.className='pb';
@@ -1953,6 +1990,8 @@ function admLoadProduct(){
   // 텍스트 설명 로드
   var descTextEl=document.getElementById('adm-desc-text');
   if(descTextEl)descTextEl.value=p.descText||'';
+  var innerTextEl=document.getElementById('adm-inner-text');
+  if(innerTextEl)innerTextEl.value=p.innerText||'';
   ['real','draw','desc'].forEach(function(t){admRenderGrid(t);});
 }
 
@@ -2050,6 +2089,8 @@ function admSaveLocal(){
   // 텍스트 설명 저장
   var descTextEl=document.getElementById('adm-desc-text');
   p.descText=(descTextEl?descTextEl.value.trim():'');
+  var innerTextEl=document.getElementById('adm-inner-text');
+  p.innerText=(innerTextEl?innerTextEl.value.trim():'');
   return true;
 }
 function admSave(){
@@ -2079,11 +2120,13 @@ function admAddProductLocal(){
     if(item.src)I[f]=item.src;return{f:f,l:l};
   });
   var newDescText=(document.getElementById('adm-new-desc-text')||{value:''}).value.trim();
-  DB[name]={cat:cat,info:info,images:images,drawings:drawings,videos:videos,descText:newDescText};
+  var newInnerText=(document.getElementById('adm-new-inner-text')||{value:''}).value.trim();
+  DB[name]={cat:cat,info:info,images:images,drawings:drawings,videos:videos,descText:newDescText,innerText:newInnerText};
   // 폼 초기화
   document.getElementById('adm-new-name').value='';
   document.getElementById('adm-new-info-rows').innerHTML='';
   var ndtEl=document.getElementById('adm-new-desc-text');if(ndtEl)ndtEl.value='';
+  var nitEl=document.getElementById('adm-new-inner-text');if(nitEl)nitEl.value='';
   admPending.newReal=[];admPending.newDraw=[];admPending.newDesc=[];
   ['newReal','newDraw','newDesc'].forEach(function(t){admRenderGrid(t);});
   return true;

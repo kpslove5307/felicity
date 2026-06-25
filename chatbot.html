@@ -1215,6 +1215,16 @@ async function admPushToGitHub(onSuccess){
       }
     }
 
+    // DB 교체
+    var dbS='/*DB_'+'START*/';var dbE='/*DB_'+'END*/';
+    var dsi=html.indexOf(dbS),dei=html.indexOf(dbE);
+    if(dsi!==-1&&dei!==-1){
+      try{
+        var dbJson=JSON.stringify(DB);
+        html=html.substring(0,dsi)+dbS+'\n'+dbJson.slice(1,-1)+'\n'+dbE+html.substring(dei+dbE.length);
+      }catch(e){console.error('DB 교체 오류:',e);}
+    }
+
     // ADM_USERS 교체
     var usS='/*USER'+'S_START*/';var usE='/*USER'+'S_END*/';
     var si=html.indexOf(usS),ei=html.indexOf(usE);

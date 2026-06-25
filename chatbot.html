@@ -2197,9 +2197,9 @@ function gateShowUserInfo(){
     nm.textContent = CURRENT_USER.name || CURRENT_USER.id;
     el.style.display='flex';
   }
-  // 관리자만 관리자 버튼 표시
+  // 일반 사용자는 관리자 버튼 숨기기
   var admBtn=document.getElementById('adm-btn');
-  if(admBtn) admBtn.style.display=IS_ADMIN?'':'none';
+  if(admBtn) admBtn.style.display='none';
   // 사이드 패널 이름 자동입력
   var sw = document.getElementById('side-writer');
   if(sw && CURRENT_USER && CURRENT_USER.name) sw.value = CURRENT_USER.name;

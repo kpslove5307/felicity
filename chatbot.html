@@ -1239,6 +1239,11 @@ async function admPushToGitHub(onSuccess){
     }
     html=html.replace(/var I=\{[\s\S]*?\};/,'var I='+JSON.stringify(I)+';');
 
+    // DB 교체 (마커 방식)
+    var dbS='/*DB_'+'START*/';var dbE='/*DB_'+'END*/';
+    var dbi=html.indexOf(dbS),dbe=html.indexOf(dbE);
+    if(dbi!==-1&&dbe!==-1)html=html.substring(0,dbi)+dbS+JSON.stringify(DB)+dbE+html.substring(dbe+dbE.length);
+
     msg.textContent='HTML 파일 인코딩 중...';
     var htmlB64=btoa(unescape(encodeURIComponent(html)));
     msg.textContent='HTML 업로드 중...';
@@ -1308,7 +1313,7 @@ function admCloseLogin(){
 }
 function admCheckPw(){
   var v=document.getElementById('adm-pw-input').value;
-  if(v===ADM_PW){IS_ADMIN=true;if(!CURRENT_USER)CURRENT_USER={id:'admin',name:'관리자'};admCloseLogin();admOpenPanel();}
+  if(v===ADM_PW){IS_ADMIN=true;admCloseLogin();admOpenPanel();}
   else{
     document.getElementById('adm-err').style.display='block';
     document.getElementById('adm-pw-input').value='';
@@ -2176,7 +2181,6 @@ function gateDoAdminLogin(){
   if(pw !== ADM_PW){err.textContent='비밀번호가 올바르지 않습니다.';err.style.display='block';return;}
   // 관리자 로그인 성공 → IS_ADMIN 설정 후 게이트 닫고 패널 열기
   IS_ADMIN=true;
-  if(!CURRENT_USER)CURRENT_USER={id:'admin',name:'관리자'};
   document.getElementById('user-gate').style.display='none';
   var admBtn=document.getElementById('adm-btn');
   if(admBtn) admBtn.style.display='';

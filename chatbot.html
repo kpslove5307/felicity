@@ -1006,7 +1006,7 @@ function buildCard(key){
   if(canSeeInner){
     if(p.innerText&&p.innerText.trim()){
       var it=document.createElement('div');
-      it.style.cssText='white-space:pre-wrap;line-height:1.8;font-size:13px;color:#2c2c2c;padding:16px 18px;background:#fff8f0;border-radius:0;margin:0;border:none;font-family:inherit';
+      it.style.cssText='white-space:pre-wrap;line-height:1.8;font-size:13px;color:#2c2c2c;padding:16px 18px;background:#fff8f0;border-radius:0;margin:0;border:none;border-left:4px solid #c0392b;font-family:inherit';
       var urlReg2=/(https?:\/\/[^\s\u3000\uff00-\uffef<>"]+)/g;
       var esc2=p.innerText.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
       it.innerHTML=esc2.replace(urlReg2,'<a href="$1" target="_blank" rel="noopener" style="color:#1a73e8;text-decoration:underline;word-break:break-all;">$1</a>');

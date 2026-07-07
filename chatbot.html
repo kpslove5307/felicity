@@ -2372,77 +2372,109 @@ async function inquirySubmit(){
 }
 
 /* ── 관리자: 문의 목록 로드 ── */
+var admInqPage=1;
+var admInqShownCount=0;
+
+function admBuildInquiryCard(issue){
+  var lines=(issue.body||'').split('\n');
+  var writer='';var contentLines=[];var recording=false;
+  lines.forEach(function(l){
+    if(l.startsWith('작성자: '))writer=l.replace('작성자: ','').trim();
+    else if(l.trim()==='')recording=true;
+    else if(recording&&!l.startsWith('접수일시'))contentLines.push(l);
+  });
+  var contentText=contentLines.join('\n').trim();
+  var dateMatch=(issue.body||'').match(/접수일시: (.+)/);
+  var dateStr=dateMatch?dateMatch[1]:'';
+
+  var existReply=null;
+  ADM_USERS.forEach(function(u){
+    if(u.name===writer&&u.replies){
+      u.replies.forEach(function(r){if(r.issueNum===issue.number)existReply=r;});
+    }
+  });
+  var replyId='reply-'+issue.number;
+  var card=document.createElement('div');
+  card.style.cssText='padding:12px 14px;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;gap:10px;align-items:flex-start';
+  card.dataset.issueNum=issue.number;
+
+  var chk=document.createElement('input');
+  chk.type='checkbox';
+  chk.className='inq-check';
+  chk.dataset.num=issue.number;
+  chk.style.cssText='margin-top:4px;cursor:pointer;width:16px;height:16px;flex-shrink:0';
+  chk.onchange=admUpdateCheckCount;
+  card.appendChild(chk);
+
+  var replyHtml=existReply?'<div style="margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #e8ecf4;font-size:12px"><span style="color:#1a4fa0;font-weight:600">📣 관리자 답글</span>&nbsp;&nbsp;<span style="color:#333;white-space:pre-wrap">'+existReply.text+'</span></div>':'';
+  var body=document.createElement('div');
+  body.style.cssText='flex:1;min-width:0';
+  body.innerHTML=
+    '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">'
+    +'<span style="font-weight:700;color:#333">'+writer+'</span>'
+    +'<span style="color:#bbb;font-size:10px">'+dateStr+'</span>'
+    +'<button onclick="admDeleteInquiry('+issue.number+',this)" style="margin-left:auto;padding:3px 10px;background:#fff0f0;border:1px solid #fcc;border-radius:6px;font-size:11px;cursor:pointer;color:#c33">🗑 삭제</button>'
+    +'</div>'
+    +'<div style="color:#555;white-space:pre-wrap;line-height:1.6;margin-bottom:8px">'+contentText+'</div>'
+    +replyHtml
+    +'<div style="display:flex;gap:6px;margin-top:4px">'
+    +'<textarea id="'+replyId+'" placeholder="답글 입력..." rows="2" style="flex:1;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:12px;font-family:inherit;resize:vertical;outline:none">'+(existReply?existReply.text:'')+'</textarea>'
+    +'<button onclick="admSaveReply('+issue.number+',\''+writer+'\',\''+replyId+'\',this)" style="padding:6px 12px;background:#1a4fa0;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-weight:700;align-self:flex-end">답글 저장</button>'
+    +'</div>';
+  card.appendChild(body);
+  return card;
+}
+
 async function admLoadInquiries(){
   var cfg = admGhLoadConfig();
   if(!cfg||!cfg.token){alert('GitHub 토큰을 먼저 설정하세요.');return;}
+  admInqPage=1;
+  admInqShownCount=0;
   var el = document.getElementById('adm-inquiry-list');
   el.innerHTML='<div style="padding:16px;text-align:center;color:#aaa;font-size:12px">불러오는 중...</div>';
+  await admFetchInquiryPage(true);
+}
+
+async function admFetchInquiryPage(isFirst){
+  var cfg = admGhLoadConfig();
+  if(!cfg||!cfg.token){alert('GitHub 토큰을 먼저 설정하세요.');return;}
+  var el = document.getElementById('adm-inquiry-list');
+  var oldBtn = document.getElementById('adm-inquiry-more-btn');
+  if(oldBtn){oldBtn.textContent='불러오는 중...';oldBtn.disabled=true;}
   try{
-    var res = await fetch('https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/issues?state=open&per_page=50',{
+    var res = await fetch('https://api.github.com/repos/'+cfg.owner+'/'+cfg.repo+'/issues?state=open&per_page=100&page='+admInqPage,{
       headers:{'Authorization':'token '+cfg.token,'Accept':'application/vnd.github.v3+json'}
     });
-    var issues = await res.json();
-    // [문의] 제목만 필터
-    issues = issues.filter(function(i){return i.title&&i.title.indexOf('[문의]')===0;});
-    if(!issues.length){
-      el.innerHTML='<div style="padding:20px;text-align:center;color:#bbb;font-size:12px">접수된 문의가 없습니다</div>';
-      return;
+    var rawIssues = await res.json();
+    if(!Array.isArray(rawIssues))throw new Error('응답 오류');
+    var issues = rawIssues.filter(function(i){return i.title&&i.title.indexOf('[문의]')===0;});
+
+    if(isFirst) el.innerHTML='';
+    if(oldBtn) oldBtn.remove();
+
+    issues.forEach(function(issue){ el.appendChild(admBuildInquiryCard(issue)); });
+    admInqShownCount += issues.length;
+
+    var hasMore = rawIssues.length===100;
+    if(hasMore){
+      admInqPage++;
+      var btn=document.createElement('button');
+      btn.id='adm-inquiry-more-btn';
+      btn.textContent='더보기';
+      btn.style.cssText='display:block;width:100%;margin-top:8px;padding:10px;background:#f0f4ff;border:1px solid #c5d0e8;border-radius:8px;font-size:12px;color:#1a4fa0;cursor:pointer;font-weight:700';
+      btn.onclick=function(){admFetchInquiryPage(false);};
+      el.appendChild(btn);
     }
-    el.innerHTML='';
-    issues.forEach(function(issue){
-      var lines=(issue.body||'').split('\n');
-      var writer='';var contentLines=[];var recording=false;
-      lines.forEach(function(l){
-        if(l.startsWith('작성자: '))writer=l.replace('작성자: ','').trim();
-        else if(l.trim()==='')recording=true;
-        else if(recording&&!l.startsWith('접수일시'))contentLines.push(l);
-      });
-      var contentText=contentLines.join('\n').trim();
-      var dateMatch=(issue.body||'').match(/접수일시: (.+)/);
-      var dateStr=dateMatch?dateMatch[1]:'';
 
-      // 기존 답글 찾기
-      var existReply=null;
-      ADM_USERS.forEach(function(u){
-        if(u.name===writer&&u.replies){
-          u.replies.forEach(function(r){if(r.issueNum===issue.number)existReply=r;});
-        }
-      });
-      var replyId='reply-'+issue.number;
-      var card=document.createElement('div');
-      card.style.cssText='padding:12px 14px;border-bottom:1px solid #f0f0f0;font-size:12px;display:flex;gap:10px;align-items:flex-start';
-      card.dataset.issueNum=issue.number;
-
-      // 체크박스
-      var chk=document.createElement('input');
-      chk.type='checkbox';
-      chk.className='inq-check';
-      chk.dataset.num=issue.number;
-      chk.style.cssText='margin-top:4px;cursor:pointer;width:16px;height:16px;flex-shrink:0';
-      chk.onchange=admUpdateCheckCount;
-      card.appendChild(chk);
-
-      // 내용 영역
-      var replyHtml=existReply?'<div style="margin-bottom:8px;padding-bottom:6px;border-bottom:1px solid #e8ecf4;font-size:12px"><span style="color:#1a4fa0;font-weight:600">📣 관리자 답글</span>&nbsp;&nbsp;<span style="color:#333;white-space:pre-wrap">'+existReply.text+'</span></div>':'';
-      var body=document.createElement('div');
-      body.style.cssText='flex:1;min-width:0';
-      body.innerHTML=
-        '<div style="display:flex;align-items:center;gap:6px;margin-bottom:6px">'
-        +'<span style="font-weight:700;color:#333">'+writer+'</span>'
-        +'<span style="color:#bbb;font-size:10px">'+dateStr+'</span>'
-        +'<button onclick="admDeleteInquiry('+issue.number+',this)" style="margin-left:auto;padding:3px 10px;background:#fff0f0;border:1px solid #fcc;border-radius:6px;font-size:11px;cursor:pointer;color:#c33">🗑 삭제</button>'
-        +'</div>'
-        +'<div style="color:#555;white-space:pre-wrap;line-height:1.6;margin-bottom:8px">'+contentText+'</div>'
-        +replyHtml
-        +'<div style="display:flex;gap:6px;margin-top:4px">'
-        +'<textarea id="'+replyId+'" placeholder="답글 입력..." rows="2" style="flex:1;padding:7px 10px;border:1px solid #ddd;border-radius:8px;font-size:12px;font-family:inherit;resize:vertical;outline:none">'+(existReply?existReply.text:'')+'</textarea>'
-        +'<button onclick="admSaveReply('+issue.number+',\''+writer+'\',\''+replyId+'\',this)" style="padding:6px 12px;background:#1a4fa0;color:#fff;border:none;border-radius:8px;font-size:11px;cursor:pointer;font-weight:700;align-self:flex-end">답글 저장</button>'
-        +'</div>';
-      card.appendChild(body);
-      el.appendChild(card);
-    });
+    if(admInqShownCount===0&&!hasMore){
+      el.innerHTML='<div style="padding:20px;text-align:center;color:#bbb;font-size:12px">접수된 문의가 없습니다</div>';
+    }
   }catch(e){
-    el.innerHTML='<div style="padding:12px;color:#c33;font-size:12px">오류: '+e.message+'</div>';
+    if(isFirst) el.innerHTML='<div style="padding:12px;color:#c33;font-size:12px">오류: '+e.message+'</div>';
+    else{
+      alert('추가 문의를 불러오지 못했습니다: '+e.message);
+      if(oldBtn){oldBtn.textContent='더보기';oldBtn.disabled=false;}
+    }
   }
 }
 

@@ -1272,15 +1272,22 @@ function admFootSave(){
     if(!cat||cat==='__new__'){alert('카테고리를 선택하세요.');return;}
     admAddProductLocal();
     admShowToast('✅ "'+name+'" 세션에 저장됨! (GitHub 업로드 전)');
-  } else {
+  } else if(admCurrentTab==='edit'){
     admSaveLocal();
+  } else if(admCurrentTab==='notice'){
+    admNoticeSave();
+  } else {
+    admShowToast('이 탑은 각 항목의 저장 버튼을 이용해 주세요.');
   }
 }
 function admFootSaveAndPush(){
   if(admCurrentTab==='new'){
     admAddProductAndPush();
-  } else {
+  } else if(admCurrentTab==='edit'){
     admSaveAndPush();
+  } else {
+    if(admCurrentTab==='notice')admNoticeSave();
+    admPushToGitHub(null);
   }
 }
 

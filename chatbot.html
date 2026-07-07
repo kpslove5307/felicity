@@ -3191,6 +3191,37 @@ function allKeyTokensMatch(k, keyTokens){
   return matched.length >= Math.ceil(keyTokens.length * 0.5);
 }
 
+// "카테고리명 + 짧은 속성어" 조합 감지 (예: "방염힐링월", "방염 힐링월")
+// 카테고리명이 다른 상위/하위 카테고리 이름에 부분포함될 때(힐링월 ⊂ 힐링월몰딩) 속성어가 없는 무관한 카테고리까지 섞이는 걸 막기 위함
+// 잔여 속성어가 짧을(2~4자) 때만 적용 - 길면(예: "45t도어사용가능한") 별도 압축단어이므로 기존 로직에 맡김
+function findCategoryResidual(q){
+  var catLower=ADM_CATS.map(function(c){return c.toLowerCase();});
+  var words=q.trim().toLowerCase().split(/\s+/).filter(function(w){return w.length>0;});
+  if(words.length===1){
+    var w=words[0];
+    var sorted=catLower.slice().sort(function(a,b){return b.length-a.length;});
+    for(var i=0;i<sorted.length;i++){
+      var cn=sorted[i];
+      var idx=w.indexOf(cn);
+      if(idx!==-1){
+        var residual=(w.substring(0,idx)+w.substring(idx+cn.length)).trim();
+        if(residual.length>=2&&residual.length<=4)return{cat:cn,residual:residual};
+        return null;
+      }
+    }
+    return null;
+  }
+  if(words.length===2){
+    for(var wi=0;wi<2;wi++){
+      var other=words[1-wi];
+      if(catLower.indexOf(words[wi])!==-1&&other.length>=2&&other.length<=4){
+        return {cat:words[wi], residual:other};
+      }
+    }
+  }
+  return null;
+}
+
 // 통합 스마트 검색
 function smartSearch(q){
   var tokens=tokenize(q);
@@ -3199,12 +3230,15 @@ function smartSearch(q){
   var spaceTokens=q.trim().toLowerCase().split(/\s+/).filter(function(w){return w.length>=2;});
   var isLongQuery=spaceTokens.length>=2; // 2단어 이상 = 장문 검색
   var keyTokens=isLongQuery?directKeyTokens(q):[];
+  var catResidual=findCategoryResidual(q);
   var scored=[];
   Object.keys(DB).forEach(function(k){
     var s=scoreProduct(k,tokens);
     if(s<=0)return;
     // 장문 검색이면 핵심 토큰 50% 이상 매칭 필수
     if(isLongQuery&&!allKeyTokensMatch(k,keyTokens))return;
+    // 카테고리명+짧은속성어 조합이면 그 속성어도 반드시 매칭되어야 함 (인접 카테고리 오염 방지)
+    if(catResidual&&getProductText(k).indexOf(catResidual.residual)===-1)return;
     scored.push({k:k,score:s});
   });
   scored.sort(function(a,b){return b.score-a.score||a.k.localeCompare(b.k,'ko');});

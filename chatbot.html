@@ -10,7 +10,20 @@
 *{box-sizing:border-box;margin:0;padding:0;font-family:'Malgun Gothic','Apple SD Gothic Neo',sans-serif}
 body{background:var(--bg);min-height:100vh;display:flex;justify-content:center;align-items:flex-start;padding:16px;gap:16px}
 #side-panel{width:390px;flex-shrink:0;display:none;flex-direction:column;gap:0;align-self:flex-start;margin-top:0}
-@media(min-width:1100px){#side-panel{display:flex}}
+@media(min-width:1100px){#side-panel{display:flex}
+#notice-popup-modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9600;align-items:center;justify-content:center;padding:20px}
+#notice-popup-modal.show{display:flex}
+.npm-box{background:#fff;border-radius:18px;max-width:600px;width:100%;padding:34px 32px 26px;box-shadow:0 20px 60px rgba(0,0,0,.35);max-height:85vh;display:flex;flex-direction:column}
+.npm-title{font-size:22px;font-weight:800;color:var(--p);margin-bottom:16px;display:flex;align-items:center;gap:8px;flex-shrink:0}
+#notice-popup-content{font-size:16px;line-height:1.8;white-space:pre-wrap;margin-bottom:26px;overflow-y:auto;flex:1;min-height:0}
+.npm-btns{display:flex;gap:10px;flex-shrink:0}
+.npm-btns button{flex:1;padding:13px;border:none;border-radius:10px;font-size:14px;cursor:pointer}
+.npm-btn-today{background:#f0f2f5;color:#666}
+.npm-btn-close{background:var(--p);color:#fff;font-weight:700}
+@media(min-width:1600px){
+  #notice-popup-modal.show{background:transparent;justify-content:flex-start;pointer-events:none}
+  .npm-box{pointer-events:auto;width:340px;max-width:340px;height:82vh;max-height:82vh;margin-left:28px}
+}}
 #app{width:100%;max-width:860px;background:var(--w);border-radius:22px;box-shadow:0 8px 40px rgba(26,79,160,.15);display:flex;flex-direction:column;height:98vh;overflow:hidden}
 #hdr{background:linear-gradient(135deg,var(--p),var(--pd));color:#fff;padding:13px 18px;display:flex;align-items:center;gap:12px;flex-shrink:0;flex-wrap:wrap}
 #hdr-ic{width:40px;height:40px;background:rgba(255,255,255,.15);border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
@@ -1630,7 +1643,6 @@ function admPopupLocalSave(){
 }
 
 /* ══ 공지 팝업 (일반/특정사용자, 오늘하루끄기) ══ */
-var _popupQueue=[];
 function popupDismissedToday(type){
   return localStorage.getItem('woodin_popup_dismiss_'+type)===new Date().toDateString();
 }
@@ -1639,34 +1651,34 @@ function popupNoticeDismissToday(type){
 }
 function popupNoticeShow(){
   if(!CURRENT_USER||typeof ADM_NOTICE_POPUP==='undefined')return;
-  _popupQueue=[];
   var qualifiesTarget=CURRENT_USER.id&&(CURRENT_USER.id.endsWith('우딘')||['강원선','강영수','강지혜','강승연'].indexOf(CURRENT_USER.id)!==-1||CURRENT_USER.id==='admin'||IS_ADMIN);
-  if(ADM_NOTICE_POPUP.targetActive&&qualifiesTarget&&ADM_NOTICE_POPUP.targetContent&&!popupDismissedToday('target')){
-    _popupQueue.push({type:'target',content:ADM_NOTICE_POPUP.targetContent,color:ADM_NOTICE_POPUP.targetColor||'#333333'});
+  var item=null;
+  // 특정공지 대상자는 특정공지만 확인 (전체공지는 생략), 일반사용자는 전체공지만 확인
+  if(qualifiesTarget){
+    if(ADM_NOTICE_POPUP.targetActive&&ADM_NOTICE_POPUP.targetContent&&!popupDismissedToday('target')){
+      item={type:'target',content:ADM_NOTICE_POPUP.targetContent,color:ADM_NOTICE_POPUP.targetColor||'#333333'};
+    }
+  } else {
+    if(ADM_NOTICE_POPUP.generalActive&&ADM_NOTICE_POPUP.generalContent&&!popupDismissedToday('general')){
+      item={type:'general',content:ADM_NOTICE_POPUP.generalContent,color:ADM_NOTICE_POPUP.generalColor||'#333333'};
+    }
   }
-  if(ADM_NOTICE_POPUP.generalActive&&ADM_NOTICE_POPUP.generalContent&&!popupDismissedToday('general')){
-    _popupQueue.push({type:'general',content:ADM_NOTICE_POPUP.generalContent,color:ADM_NOTICE_POPUP.generalColor||'#333333'});
-  }
-  popupNoticeShowNext();
-}
-function popupNoticeShowNext(){
   var modal=document.getElementById('notice-popup-modal');
-  if(!modal)return;
-  if(!_popupQueue.length){modal.style.display='none';return;}
-  var item=_popupQueue.shift();
+  if(!modal||!item)return;
   var box=document.getElementById('notice-popup-content');
-  if(box){box.textContent=item.content;box.style.color=item.color||'#333333';}
+  if(box){box.textContent=item.content;box.style.color=item.color;}
   modal.dataset.currentType=item.type;
-  modal.style.display='flex';
+  modal.classList.add('show');
 }
 function popupNoticeClose(){
-  popupNoticeShowNext();
+  var modal=document.getElementById('notice-popup-modal');
+  if(modal)modal.classList.remove('show');
 }
 function popupNoticeCloseToday(){
   var modal=document.getElementById('notice-popup-modal');
   var type=modal?modal.dataset.currentType:null;
   if(type)popupNoticeDismissToday(type);
-  popupNoticeShowNext();
+  if(modal)modal.classList.remove('show');
 }
 
 // ── 카테고리 관리 ──────────────────────────────────────
@@ -3684,13 +3696,13 @@ async function mobileInqSubmit(){
 </div>
 
 <!-- 공지 팝업 모달 -->
-<div id="notice-popup-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:9600;align-items:center;justify-content:center;padding:20px">
-  <div style="background:#fff;border-radius:18px;max-width:600px;width:100%;padding:34px 32px 26px;box-shadow:0 20px 60px rgba(0,0,0,.35)">
-    <div style="font-size:22px;font-weight:800;color:var(--p);margin-bottom:16px;display:flex;align-items:center;gap:8px">📣 공지사항</div>
-    <div id="notice-popup-content" style="font-size:16px;line-height:1.8;color:#333;white-space:pre-wrap;margin-bottom:26px;max-height:60vh;overflow-y:auto"></div>
-    <div style="display:flex;gap:10px">
-      <button onclick="popupNoticeCloseToday()" style="flex:1;padding:13px;background:#f0f2f5;color:#666;border:none;border-radius:10px;font-size:14px;cursor:pointer">오늘 하루 보지 않기</button>
-      <button onclick="popupNoticeClose()" style="flex:1;padding:13px;background:var(--p);color:#fff;border:none;border-radius:10px;font-size:14px;font-weight:700;cursor:pointer">닫기</button>
+<div id="notice-popup-modal">
+  <div class="npm-box">
+    <div class="npm-title">📣 공지사항</div>
+    <div id="notice-popup-content"></div>
+    <div class="npm-btns">
+      <button class="npm-btn-today" onclick="popupNoticeCloseToday()">오늘 하루 보지 않기</button>
+      <button class="npm-btn-close" onclick="popupNoticeClose()">닫기</button>
     </div>
   </div>
 </div>

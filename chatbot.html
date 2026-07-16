@@ -3274,20 +3274,17 @@ function findCategoryResidual(q){
 
 // ── 질문답변(FAQ) 매칭: 저장된 질문과 사용자 문장의 토큰 겹침을 길이가중치로 비교 ──
 function scoreFaqMatch(q, faqQ){
-  var qTokens=tokenize(q), faqTokens=tokenize(faqQ);
-  if(!qTokens.length||!faqTokens.length)return 0;
-  var qSet={};qTokens.forEach(function(t){qSet[t]=1;});
-  var faqSet={};faqTokens.forEach(function(t){faqSet[t]=1;});
-  function weightedCoverage(fromTokens, targetSet){
-    var total=0,hit=0,seen={};
-    fromTokens.forEach(function(t){
-      if(seen[t])return;seen[t]=1;
-      var w=t.length;total+=w;
-      if(targetSet[t])hit+=w;
-    });
-    return total>0?hit/total:0;
-  }
-  return (weightedCoverage(faqTokens,qSet)+weightedCoverage(qTokens,faqSet))/2;
+  var tokens=tokenize(q);
+  var txtNospace=faqQ.toLowerCase().replace(/\s/g,'');
+  var hit=0,seen={};
+  tokens.forEach(function(t){
+    if(seen[t])return;seen[t]=1;
+    if(txtNospace.indexOf(t)!==-1)hit+=t.length;
+  });
+  var keyTokens=directKeyTokens(faqQ);
+  var maxPossible=0;
+  keyTokens.forEach(function(t){maxPossible+=t.length;});
+  return maxPossible>0?hit/maxPossible:0;
 }
 function findFaqMatch(q){
   if(!ADM_FAQ||!ADM_FAQ.length)return null;
@@ -3296,7 +3293,7 @@ function findFaqMatch(q){
     var s=scoreFaqMatch(q,item.q);
     if(s>bestScore){bestScore=s;best=item;}
   });
-  return (best&&bestScore>=0.6)?best:null;
+  return (best&&bestScore>=0.25)?best:null;
 }
 
 // 통합 스마트 검색
